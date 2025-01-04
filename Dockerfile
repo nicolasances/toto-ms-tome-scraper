@@ -1,49 +1,17 @@
 # Use the official Python image as the base image
-FROM python:3.9-slim
+FROM mcr.microsoft.com/playwright/python:v1.49.1-noble
 
 # Set the working directory inside the container
 WORKDIR /app
-
-# Install system dependencies required for Playwright
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libglib2.0-0 \
-    libnss3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdbus-1-3 \
-    libxcomposite1 \
-    libxrandr2 \
-    libxdamage1 \
-    libxkbcommon0 \
-    libgbm1 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libatspi2.0-0 \
-    libdrm2 \
-    libexpat1 \
-    libx11-6 \
-    libxext6 \
-    libxfixes3 \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Playwright dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
-    fonts-ipafont-gothic \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Playwright
-RUN pip install --no-cache-dir playwright
-RUN playwright install --with-deps
 
 # Install other Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
+
+# Install Playwright
+RUN pip install --no-cache-dir playwright
+RUN playwright install --with-deps
 
 # Copy the application code into the container
 COPY . .
@@ -55,3 +23,4 @@ ENV PYTHONUNBUFFERED=TRUE
 
 # Command to run the application using Gunicorn
 CMD gunicorn --bind 0.0.0.0:8080 app:app --enable-stdio-inheritance --timeout 3600 --workers=2
+# CMD python scrape.py

@@ -15,18 +15,17 @@ def scrape_blog(url: str, timeout: int = 10000) -> str:
     with sync_playwright() as p:
         
         # Launch a headless browser
-        browser = p.chromium.launch(headless=True)
+        browser = p.firefox.launch(headless=True)
         page = browser.new_page()
         
         # Navigate to the blog page
         page.goto(url, wait_until="networkidle")
         
-        # Optionally wait for a specific element to load (e.g., content container)
+        # Wait for elements that are necessary for the blog to load
         page.wait_for_selector("p.sc-dnaUSb", timeout=timeout)  # 10 seconds timeout
         
         # Extract the content of the blog
         blog_content = page.content()  # Get the entire page HTML
-        # blog_text = page.inner_text("page-body-div")  # Extract text from a specific element
         
         # Close the browser
         browser.close()

@@ -12,8 +12,6 @@ from scraper.scrape import scrape_blog
 @toto_delegate(config_class=Config)
 def test(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     
-    timeout = request.args.get('timeout')
-    
     exec_context.logger.log(exec_context.cid, f"It's working!")
     
     # 1. Scrape the blog
@@ -21,7 +19,7 @@ def test(request: Request, user_context: UserContext, exec_context: ExecutionCon
     
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url}')
     
-    html_content = scrape_blog(blog_url, int(timeout))
+    html_content = scrape_blog(blog_url)
     
     exec_context.logger.log(exec_context.cid, f'Scraped content (first 50 chars) {html_content[0:50]}')
     exec_context.logger.log(exec_context.cid, f'Scraped content (last 200 chars) {html_content[-200:]}')
