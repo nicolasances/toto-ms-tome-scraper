@@ -22,7 +22,7 @@ def scrape_blog(url: str) -> str:
         page.goto(url, wait_until="networkidle")
         
         # Optionally wait for a specific element to load (e.g., content container)
-        # page.wait_for_selector("div.blog-content")
+        page.wait_for_selector("p.sc-dnaUSb", timeout=10000)  # 10 seconds timeout
         
         # Extract the content of the blog
         blog_content = page.content()  # Get the entire page HTML
