@@ -1,6 +1,6 @@
 from playwright.sync_api import sync_playwright
 
-def scrape_blog(url: str) -> str:
+def scrape_blog(url: str, timeout: int = 10000) -> str:
     """Scrapes the provided blog. 
     This method extracts all the html of the blog and returns it.
 
@@ -22,7 +22,7 @@ def scrape_blog(url: str) -> str:
         page.goto(url, wait_until="networkidle")
         
         # Optionally wait for a specific element to load (e.g., content container)
-        page.wait_for_selector("p.sc-dnaUSb", timeout=10000)  # 10 seconds timeout
+        page.wait_for_selector("p.sc-dnaUSb", timeout=timeout)  # 10 seconds timeout
         
         # Extract the content of the blog
         blog_content = page.content()  # Get the entire page HTML
