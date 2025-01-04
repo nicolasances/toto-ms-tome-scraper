@@ -11,6 +11,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
 
+# Install Playwright
+RUN playwright install
+
 # Copy the application code into the container
 COPY . .
 
