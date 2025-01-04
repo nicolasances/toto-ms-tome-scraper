@@ -12,26 +12,37 @@ def scrape_blog(url):
         page.goto(url, wait_until="networkidle")
         
         # Optionally wait for a specific element to load (e.g., content container)
-        # page.wait_for_selector("div.blog-content")
         page.wait_for_selector("p", timeout=10000)  # 10 seconds timeout
         
         # Extract the content of the blog
         blog_content = page.content()  # Get the entire page HTML
-        # blog_text = page.inner_text("page-body-div")  # Extract text from a specific element
-        # page.wait_for_selector("p", timeout=10000)  # 10 seconds timeout
         
         # Close the browser
         browser.close()
         
         soup = BeautifulSoup(blog_content, "html.parser")
-        paragraphs = soup.find_all("p")
-        for idx, p in enumerate(paragraphs, start=1):
-            print(f"Paragraph {idx}: {p.get_text(strip=True)}")
         
-        return {
-            "html": blog_content,
-            # "text": blog_text
-        }
+        # Find all tags that are either p or h4 
+        tags = soup.find_all(["p", "h4"])
+        
+        # Go through each tag and whenever a h4 is found, create a list of all the p tags that follow it
+        # This is to group the content of each section together
+        # Each section must be an dict made of a "title" and a "content" key. The title is the h4 tag and the content is a list of p tags' content. 
+        sections = []
+        section = None
+        for tag in tags:
+            if tag.name == "h4":
+                section = {"title": tag.get_text(strip=True), "content": []}
+                sections.append(section)
+            elif tag.name == "p" and section is not None:
+                section["content"].append(tag.get_text(strip=True))
+                
+        # Print the sections array
+        for section in sections:
+            print('-----------------------------------')
+            print(section["title"])
+            print(section["content"])
+            print("\n")
 
 if __name__ == "__main__":
     # blog_url = "https://snails-shop-mta.craft.me/PaZe4KH5lo6NXF"  # Replace with your blog's URL
