@@ -11,6 +11,8 @@ The ingestion is **specific to the Blog Site**, since it's based on scraping. Cu
 
 This API provides an endpoint that only performs the following:
 * Scrapes the provided blog (only specific blog sites are supported)
-* Returns the content structured as per Tome's Knowledge Base standards:
+* Extracts the content structured as per Tome's Knowledge Base standards:
     * A title (of the blog), which corresponds to Tome's **Topic**
     * A list of sections, each of which has a title (Tome's **section**) and content. The content of each section is a list of paragraphs (pure text).
+* Saves the content in GCS, structuring it according to Tome's KB Structure (see [Tome's Readme](https://github.com/nicolasances/tome)). 
+* Updates the DB with the new Topic

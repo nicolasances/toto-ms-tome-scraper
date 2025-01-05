@@ -1,12 +1,14 @@
 from typing import List
 from bs4 import BeautifulSoup
+from model.blog import BlogContent, BlogSection
+from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 class CraftBlobTextExtractor:
     
     def __init__(self, html_content: str): 
         self.html_content = html_content
         
-    def get_content(self) -> List[str]: 
+    def get_content(self) -> BlogContent: 
         """Retrieves all the text content of the blog. 
         This ONLY retrieves the <p> content. 
         It will not retrieve the headers, for example.
@@ -37,9 +39,9 @@ class CraftBlobTextExtractor:
             elif tag.name == "p" and section is not None:
                 section["content"].append(tag.get_text(strip=True))
                 
-        return {
-            "title": blob_title,    
-            "sections": sections
-        }
+        # Create the BlogContent object
+        blog_content = BlogContent(blob_title, [BlogSection(section["title"], " ".join(section["content"])) for section in sections])
+        
+        return blog_content
     
     

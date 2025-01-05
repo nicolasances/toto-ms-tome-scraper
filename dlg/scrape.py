@@ -1,4 +1,5 @@
 
+import traceback
 from flask import Request
 from config.config import Config
 
@@ -6,9 +7,12 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
+from model.blog import Topic
 from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
+from storage.gcs import KnowledgeBaseStorage
+from pymongo import MongoClient
 
 @toto_delegate(config_class=Config)
 def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -26,6 +30,10 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
     Returns:
         _type_: _description_
     """
+    
+    config: Config = exec_context.config
+    logger = exec_context.logger
+    cid = exec_context.cid
     
     # Extract the body from the request
     body = request.get_json()
@@ -48,6 +56,43 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
     html_content = scrape_blog(blog_url)
     
     # 2. Extract all the text
-    kb_content = CraftBlobTextExtractor(html_content).get_content()
+    blog_content = CraftBlobTextExtractor(html_content).get_content()
+        
+    # 3. Store the blog content on GCS
+    KnowledgeBaseStorage(exec_context).store_blog_content(blog_content)
     
-    return kb_content
+    # 4. Save to mongo    
+    client = None
+    
+    try: 
+        client = MongoClient(config.get_mongo_connection_string())
+        
+        db = client['tome']
+        topics = db['topics']
+        
+        topic = Topic(blog_content)
+        
+        # Save the blog content to the topics collection and save the inserted id
+        # Overwrite the topic if there's another one with the same topic title in the topics collection
+        topic_id = topics.update_one({"title": topic.title}, {"$set": topic.to_bson()}, upsert=True).upserted_id
+        
+        logger.log(cid, f"Saved blog content to MongoDB with Topic ID {str(topic_id)}")
+        
+    except Exception as e: 
+        traceback.print_exc()
+        return {
+            "code": 500, 
+            "msg": "Server Error", 
+            "error": str(e)
+        }
+    
+    finally: 
+        if client: 
+            client.close()
+    
+    # Return the blog content, the topic id and the blog url
+    return {
+        "blogContent": blog_content.__dict__,
+        "topicId": str(topic_id), 
+        "blogUrl": blog_url
+    }
