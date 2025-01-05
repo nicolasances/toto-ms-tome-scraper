@@ -1,4 +1,4 @@
-# Microservice: Tome Scraper 
+# Tome Scraper Microservice
 
 This microservice is the one responsible, in the Tome Architecture, to scrape curated blogs to create the Tome Knowledge Base. 
 
@@ -16,3 +16,7 @@ This API provides an endpoint that only performs the following:
     * A list of sections, each of which has a title (Tome's **section**) and content. The content of each section is a list of paragraphs (pure text).
 * Saves the content in GCS, structuring it according to Tome's KB Structure (see [Tome's Readme](https://github.com/nicolasances/tome)). 
 * Updates the DB with the new Topic
+
+A Diagram of this process:
+
+![](./docs/drawio/scraping-process.drawio.svg)
