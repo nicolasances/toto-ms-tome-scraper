@@ -70,7 +70,7 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
         db = client['tome']
         topics = db['topics']
         
-        topic = Topic(blog_content)
+        topic = Topic(blog_content, blog_url, blog_type)
         
         # Save the blog content to the topics collection and save the inserted id
         # Overwrite the topic if there's another one with the same topic title in the topics collection
