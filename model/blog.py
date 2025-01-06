@@ -8,11 +8,13 @@ class BlogSection:
     
     title: str 
     content: str
+    order: int
     
-    def __init__(self, title: str, content: str): 
+    def __init__(self, title: str, content: str, order: int): 
         
         self.title = title
         self.content = content
+        self.order = order
 
 @dataclass
 class BlogContent: 
@@ -27,6 +29,7 @@ class BlogContent:
         
 class TopicSection: 
     
+    order: int
     title: str 
     code: str 
     
@@ -34,6 +37,7 @@ class TopicSection:
         
         self.title = blog_section.title
         self.code = generate_section_code(blog_section.title)
+        self.order = blog_section.order
     
 class Topic: 
     
