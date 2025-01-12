@@ -32,12 +32,14 @@ class TopicSection:
     order: int
     title: str 
     code: str 
+    length: int
     
     def __init__(self, blog_section: BlogSection): 
         
         self.title = blog_section.title
         self.code = generate_section_code(blog_section.title)
         self.order = blog_section.order
+        self.length = len(blog_section.content)
     
 class Topic: 
     
