@@ -1,6 +1,7 @@
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from model.blog import BlogContent
+from model.timeline import Timeline
 from util.naming import generate_section_code, generate_topic_code
 from google.cloud import storage
 
@@ -14,8 +15,13 @@ class KnowledgeBaseStorage:
         self.cid = exec_context.cid
         self.client = storage.Client()
 
-    def store_blog_content(self, blog_content: BlogContent): 
+    def store_blog_content(self, blog_content: BlogContent) -> str: 
         """Stores the blog content in the knowledge base
+        
+        Args:
+            blog_content (BlogContent): The blog content to be stored, including its title and sections.
+        Returns:
+            str: The generated topic_code 
         """
         
         self.logger.log(self.cid, f'Storing Blog "{blog_content.title}" in the knowledge base')
@@ -45,7 +51,9 @@ class KnowledgeBaseStorage:
             
             with blob.open('w') as file:
                 file.write(section.content)
-                
         
+        return topic_code
+
+
         
         

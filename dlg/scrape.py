@@ -1,6 +1,7 @@
 
 import traceback
 from flask import Request
+from agent.timeline import TimelineAgent
 from config.config import Config
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
@@ -9,10 +10,13 @@ from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from model.blog import Topic
 from model.errors import  TotoValidationError
+from model.timeline import Timeline
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.gcs import KnowledgeBaseStorage
 from pymongo import MongoClient
+
+from util.section import merge_sections
 
 @toto_delegate(config_class=Config)
 def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -57,11 +61,14 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
     
     # 2. Extract all the text
     blog_content = CraftBlobTextExtractor(html_content).get_content()
-        
-    # 3. Store the blog content on GCS
+    
+    # 3. Create a Timeline
+    timeline: Timeline = TimelineAgent(exec_context=exec_context).extract_timeline(merge_sections(blog_content))
+    
+    # 4. Store the blog content on GCS
     KnowledgeBaseStorage(exec_context).store_blog_content(blog_content)
     
-    # 4. Save to mongo    
+    # 5. Save to mongo    
     client = None
     
     try: 
@@ -69,12 +76,17 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
         
         db = client['tome']
         topics = db['topics']
+        timelines_coll = db['timelines']
         
         topic = Topic(blog_content, blog_url, blog_type)
         
         # Save the blog content to the topics collection and save the inserted id
         # Overwrite the topic if there's another one with the same topic title in the topics collection
         topic_id = topics.update_one({"title": topic.title}, {"$set": topic.to_bson()}, upsert=True).upserted_id
+        
+        # Save the timeline
+        timelines_coll.delete_many({'topicCode': topic.code})
+        timelines_coll.insert_many(timeline.to_bson(topic.code))
         
         logger.log(cid, f"Saved blog content to MongoDB with Topic ID {str(topic_id)}")
         

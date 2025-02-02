@@ -38,7 +38,7 @@ class CraftBlobTextExtractor:
                 sections.append(section)
             elif tag.name == "p" and section is not None:
                 section["content"].append(tag.get_text(strip=True))
-                
+    
         # Create the BlogContent object. Each section is ordered accordingly to the order in which they were found in the blog
         blog_content = BlogContent(blob_title, [BlogSection(section["title"], " ".join(section["content"]), i) for i, section in enumerate(sections)])
         
