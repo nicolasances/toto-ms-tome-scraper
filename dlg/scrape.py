@@ -1,5 +1,7 @@
 
+from datetime import datetime
 import traceback
+import concurrent
 from flask import Request
 from agent.timeline import TimelineAgent
 from config.config import Config
@@ -13,10 +15,11 @@ from model.errors import  TotoValidationError
 from model.timeline import Timeline
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
-from storage.gcs import KnowledgeBaseStorage
+from storage.gcs import KnowledgeBaseStorage, StorageBlogStructure
 from pymongo import MongoClient
 
 from util.section import merge_sections
+from agent.refresher import RefreshersGenerator
 
 @toto_delegate(config_class=Config)
 def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -66,9 +69,25 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
     timeline: Timeline = TimelineAgent(exec_context=exec_context).extract_timeline(merge_sections(blog_content))
     
     # 4. Store the blog content on GCS
-    KnowledgeBaseStorage(exec_context).store_blog_content(blog_content)
+    kb_structure: StorageBlogStructure = KnowledgeBaseStorage(exec_context).store_blog_content(blog_content)
+            
+    # 5. Generate refreshers 
+    def generate_refresher(section_code):
+        exec_context.logger.log(exec_context.cid, f'Generating refresher for section {section_code}')
+        refresher_text = RefreshersGenerator(exec_context).generate_refresher(topic_code=kb_structure.topic_code, section_code=section_code)
+        return {
+            'topic_code': kb_structure.topic_code, 
+            'section_code': section_code, 
+            'refersher': refresher_text, 
+            'generated_on': datetime.now().strftime('%Y%m%d %H:%M:%S')
+        }
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(generate_refresher, section_code) for section_code in kb_structure.section_codes]
+        section_refreshers = [future.result() for future in concurrent.futures.as_completed(futures)]
     
-    # 5. Save to mongo    
+    
+    # 6. Save to mongo    
     client = None
     
     try: 
@@ -77,6 +96,7 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
         db = client['tome']
         topics = db['topics']
         timelines_coll = db['timelines']
+        refreshers_coll = db['refreshers']
         
         topic = Topic(blog_content, blog_url, blog_type)
         
@@ -87,6 +107,10 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
         # Save the timeline
         timelines_coll.delete_many({'topicCode': topic.code})
         timelines_coll.insert_many(timeline.to_bson(topic.code))
+        
+        # Save the refreshers
+        refreshers_coll.delete_many({'topicCode': topic.code})
+        refreshers_coll.insert_many(section_refreshers)
         
         logger.log(cid, f"Saved blog content to MongoDB with Topic ID {str(topic_id)}")
         

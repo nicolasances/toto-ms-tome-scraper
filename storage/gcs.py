@@ -1,9 +1,20 @@
+from typing import List
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from model.blog import BlogContent
 from model.timeline import Timeline
 from util.naming import generate_section_code, generate_topic_code
 from google.cloud import storage
+
+class StorageBlogStructure: 
+    
+    topic_code: str 
+    section_codes: List[str]
+    
+    def __init__(self, topic_code: str, section_codes: List[str]): 
+        self.topic_code = topic_code
+        self.section_codes = section_codes
+    
 
 class KnowledgeBaseStorage: 
     
@@ -15,7 +26,7 @@ class KnowledgeBaseStorage:
         self.cid = exec_context.cid
         self.client = storage.Client()
 
-    def store_blog_content(self, blog_content: BlogContent) -> str: 
+    def store_blog_content(self, blog_content: BlogContent) -> StorageBlogStructure: 
         """Stores the blog content in the knowledge base
         
         Args:
@@ -33,12 +44,14 @@ class KnowledgeBaseStorage:
         topic_code = generate_topic_code(blog_content.title)
         
         # 3. Store each section of the blog into its own file in the bucket
+        section_codes = []
         for section in blog_content.sections: 
             
             self.logger.log(self.cid, f'Storing Section "{section.title}" in the knowledge base')
             
             # 3.1 Generate the Section Code
             section_code = generate_section_code(section.title)
+            section_codes.append(section_code)
             
             # 3.2 Generate the file path
             filepath = filepath = f'{self.knowledge_base_folder}/{topic_code}/{section_code}.txt'
@@ -52,7 +65,8 @@ class KnowledgeBaseStorage:
             with blob.open('w') as file:
                 file.write(section.content)
         
-        return topic_code
+        return StorageBlogStructure(topic_code, section_codes)
+    
 
 
         
