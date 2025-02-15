@@ -43,7 +43,8 @@ class RefreshersGenerator:
         Follow these rules: 
          - Only provide the HTML code, no other text. 
          - Wrap everything in a <div> with class 'refresher'. 
-         - Never use \\n, only use <br>.
+         - Wrap names of people in a div with class 'highlight-person'
+         - Wrap dates in a div with class 'highlight-date'
         """
 
         conversation = [
