@@ -39,6 +39,7 @@ class RefreshersGenerator:
         - Wrap names of people in <span class='highlight-person'></span> tags.
         - Wrap dates in <span class='highlight-date'></span> tags.
         - Only provide the HTML code in your response, without any preamble or explanation.
+        - Use <b> tags to highlight important passages or words.
         </task>
         <knowledge_base>
         {kb}
