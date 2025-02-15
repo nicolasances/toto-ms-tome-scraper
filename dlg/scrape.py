@@ -76,10 +76,10 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
         exec_context.logger.log(exec_context.cid, f'Generating refresher for section {section_code}')
         refresher_text = RefreshersGenerator(exec_context).generate_refresher(topic_code=kb_structure.topic_code, section_code=section_code)
         return {
-            'topic_code': kb_structure.topic_code, 
-            'section_code': section_code, 
+            'topicCode': kb_structure.topic_code, 
+            'sectionCode': section_code, 
             'refersher': refresher_text, 
-            'generated_on': datetime.now().strftime('%Y%m%d %H:%M:%S')
+            'generatedOn': datetime.now().strftime('%Y%m%d %H:%M:%S')
         }
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
