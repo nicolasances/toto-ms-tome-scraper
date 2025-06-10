@@ -3,7 +3,8 @@ name: Release
 on:
   push:
     branches: 
-      - 'release/**'
+      - 'feature/**'
+      - main
 
 env:
   TF_CLOUD_ORGANIZATION: "Imatz"
@@ -16,7 +17,7 @@ env:
   TF_VAR_aws_access_key: "\"${{ secrets.AWS_ACCESS_KEY_ID }}\""
   TF_VAR_aws_secret_access_key: "\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\""
   TF_VAR_aws_account_id: "\"${{ secrets.aws_account_id }}\""
-  TF_VAR_toto_environment: "\"prod\""
+  TF_VAR_toto_environment: "\"dev\""
   TF_VAR_ecs_subnet_1: "\"${{ secrets.ECS_SUBNET_1 }}\""
   TF_VAR_ecs_subnet_2: "\"${{ secrets.ECS_SUBNET_2 }}\""
   TF_VAR_ecs_security_group: "\"${{ secrets.ecs_security_group }}\""
@@ -36,7 +37,7 @@ jobs:
   # This workflow contains a single job called "release"
   release:
     name: Build & Deploy to AWS Container Registry
-    environment: prod
+    environment: dev
     runs-on: ubuntu-latest
 
     steps:
@@ -58,7 +59,7 @@ jobs:
       id: build-image
       env: 
         ECR_REGISTRY: ${{steps.login-ecr.outputs.registry}}
-        ECR_REPO: ${{env.SERVICE_NAME}}-prod
+        ECR_REPO: ${{env.SERVICE_NAME}}-dev
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
