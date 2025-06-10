@@ -31,7 +31,10 @@ jobs:
     - name: Build Docker image
       run: |
         docker build . -t europe-west1-docker.pkg.dev/${{ vars.GCP_PID }}/${{env.SERVICE_NAME}}/${{env.SERVICE_NAME}}:${{env.SERVICE_VERSION}}
-
+ 
+    - name: Push Docker image to Dockerhub 
+      run: |
+        docker push europe-west1-docker.pkg.dev/${{ vars.GCP_PID }}/${{env.SERVICE_NAME}}/${{env.SERVICE_NAME}}:${{env.SERVICE_VERSION}}
     
     - name: Setup GCloud 
       uses: google-github-actions/setup-gcloud@v0
