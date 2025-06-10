@@ -5,8 +5,9 @@ from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 class CraftBlobTextExtractor:
     
-    def __init__(self, html_content: str): 
+    def __init__(self, html_content: str, topic_title: str): 
         self.html_content = html_content
+        self.topic_title = topic_title
         
     def get_content(self) -> BlogContent: 
         """Retrieves all the text content of the blog. 
@@ -22,7 +23,7 @@ class CraftBlobTextExtractor:
         # Extract the h1 tag
         h1 = soup.find("h1")
         
-        blob_title = h1.get_text(strip=True) if h1 is not None else None
+        blob_title = self.topic_title 
         
         # Find all tags that are either p or h4 
         tags = soup.find_all(["p", "h4"])

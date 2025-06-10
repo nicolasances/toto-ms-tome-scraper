@@ -3,8 +3,7 @@ name: Release
 on:
   push:
     branches: 
-      - 'feature/**'
-      - main
+      - 'featureaws/**'
 
 env:
   TF_CLOUD_ORGANIZATION: "Imatz"

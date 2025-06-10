@@ -14,7 +14,7 @@ env:
 jobs:
   # This workflow contains a single job called "release"
   release:
-    name: Build & Deploy to AWS Container Registry
+    name: Build & Deploy to GCP
     environment: totoexperiments
     runs-on: ubuntu-latest
 
