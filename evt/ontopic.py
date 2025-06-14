@@ -9,7 +9,7 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-from dlg.scrape import extract_blog_content
+from dlg.scrape import extract_blog_content, scrape_and_store_blog
 
 @toto_delegate(config_class=Config)
 def on_topic_created(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -33,24 +33,7 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
         # KUD Uploaded Event Handling
         if decoded_message["type"] == "topicCreated": 
             
-            # Create a forged request to pass the blog URL and type
-            from werkzeug.test import EnvironBuilder
-            from werkzeug.wrappers import Request as WerkzeugRequest
-
-            builder = EnvironBuilder(
-                method='POST',
-                path='/blogs', 
-                data=json.dumps({
-                    "blogURL": decoded_message['data'].get("blogURL"),
-                    "blogType": "craft", 
-                    "topicName": decoded_message['data'].get("name", None)
-                }),
-                headers={'Content-Type': 'application/json'}
-            )
-            env = builder.get_environ()
-            forged_request = WerkzeugRequest(env)
-
             # Call the function to extract blog content
-            return extract_blog_content(forged_request)
+            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('topicName'), exec_context)
         
     return {"status": "no message to process"}
