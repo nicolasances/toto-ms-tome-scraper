@@ -16,7 +16,7 @@ from storage.gcs import KnowledgeBaseStorage, StorageBlogStructure
 def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: ExecutionContext): 
     
     # 1. Scrape the blog
-    exec_context.logger.log(exec_context.cid, f'Scraping {blog_url}')
+    exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
     
     html_content = scrape_blog(blog_url)
     

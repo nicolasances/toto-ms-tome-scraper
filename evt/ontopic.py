@@ -34,6 +34,6 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
         if decoded_message["type"] == "topicCreated": 
             
             # Call the function to extract blog content
-            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('topicName'), exec_context)
+            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), exec_context)
         
     return {"status": "no message to process"}
