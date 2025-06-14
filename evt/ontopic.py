@@ -34,7 +34,10 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
         if decoded_message["type"] == "topicCreated": 
             
             # Create a forged request to pass the blog URL and type
-            forged_request = Request(
+            from werkzeug.test import EnvironBuilder
+            from werkzeug.wrappers import Request as WerkzeugRequest
+
+            builder = EnvironBuilder(
                 method='POST',
                 data=json.dumps({
                     "blogURL": decoded_message['data'].get("blogURL"),
@@ -43,6 +46,8 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
                 }),
                 headers={'Content-Type': 'application/json'}
             )
+            env = builder.get_environ()
+            forged_request = WerkzeugRequest(env)
 
             # Call the function to extract blog content
             return extract_blog_content(forged_request, user_context, exec_context)
