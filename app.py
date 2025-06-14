@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher
+from evt.ontopic import on_topic_created
 
 app = Flask(__name__)
 CORS(app, origins=["*"])
@@ -16,7 +17,14 @@ def post_blog_scraping_request():
     return extract_blog_content(request)
 
 # -----------------------------------------------------------------------------------
-# TESTs
+# EVENTS
+# -----------------------------------------------------------------------------------
+@app.route('/evt/topics', methods=['POST'])
+def on_topic_created_event(): 
+    return on_topic_created(request)
+
+# -----------------------------------------------------------------------------------
+# TESTS
 # -----------------------------------------------------------------------------------
 @app.route('/test/refresher', methods=['POST'])
 def test_refresher_generation(): 
