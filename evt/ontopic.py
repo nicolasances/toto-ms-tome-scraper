@@ -37,9 +37,9 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
             forged_request = Request(
                 method='POST',
                 data=json.dumps({
-                    "blogURL": decoded_message.data.get("blogURL"),
+                    "blogURL": decoded_message['data'].get("blogURL"),
                     "blogType": "craft", 
-                    "topicName": decoded_message.data.get("name", None)
+                    "topicName": decoded_message['data'].get("name", None)
                 }),
                 headers={'Content-Type': 'application/json'}
             )
