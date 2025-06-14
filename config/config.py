@@ -14,7 +14,7 @@ class Config(TotoConfig):
         return "toto-ms-tome-scraper"
     
     def is_path_excluded(self, path: str) -> bool:
-        if 'events' in path: 
+        if 'events' in path or 'blogs' in path: 
             return True
 
         return False
