@@ -19,7 +19,7 @@ def post_blog_scraping_request():
 # -----------------------------------------------------------------------------------
 # EVENTS
 # -----------------------------------------------------------------------------------
-@app.route('/evt/topics', methods=['POST'])
+@app.route('/events', methods=['POST'])
 def on_topic_created_event(): 
     return on_topic_created(request)
 
