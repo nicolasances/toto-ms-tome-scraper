@@ -32,6 +32,17 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
 
         # KUD Uploaded Event Handling
         if decoded_message["type"] == "topicCreated": 
+            
+            # Create a forged request to pass the blog URL and type
+            forged_request = Request(
+                method='POST',
+                data=json.dumps({
+                    "blogURL": decoded_message["blogURL"],
+                    "blogType": "craft", 
+                    "topicName": decoded_message.get("name", None)
+                }),
+                headers={'Content-Type': 'application/json'}
+            )
 
             # Call the function to extract blog content
-            return extract_blog_content(request, user_context, exec_context)
+            return extract_blog_content(forged_request, user_context, exec_context)
