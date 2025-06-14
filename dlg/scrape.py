@@ -1,25 +1,16 @@
 
-from datetime import datetime
-import traceback
-import concurrent
 from flask import Request
-from agent.timeline import TimelineAgent
 from config.config import Config
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-from model.blog import BlogContent, Topic
+from model.blog import BlogContent
 from model.errors import  TotoValidationError
-from model.timeline import Timeline
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.gcs import KnowledgeBaseStorage, StorageBlogStructure
-from pymongo import MongoClient
-
-from util.section import merge_sections
-from agent.refresher import RefreshersGenerator
 
 @toto_delegate(config_class=Config)
 def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -37,7 +28,6 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
     Returns:
         _type_: _description_
     """
-    
     config: Config = exec_context.config
     logger = exec_context.logger
     cid = exec_context.cid

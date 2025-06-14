@@ -46,3 +46,5 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
 
             # Call the function to extract blog content
             return extract_blog_content(forged_request, user_context, exec_context)
+        
+    return {"status": "no message to process"}

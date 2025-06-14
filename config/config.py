@@ -12,6 +12,12 @@ class Config(TotoConfig):
         
     def get_api_name(self) -> str:
         return "toto-ms-tome-scraper"
+    
+    def is_path_excluded(self, path: str) -> bool:
+        if 'events' in path: 
+            return True
+
+        return False
 
     def get_tome_bucket_name(self) -> str: 
         """Retrieves the name of the GCS Bucket that contains all the tome data
