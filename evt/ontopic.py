@@ -50,6 +50,6 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
             forged_request = WerkzeugRequest(env)
 
             # Call the function to extract blog content
-            return extract_blog_content(forged_request, user_context, exec_context)
+            return extract_blog_content(forged_request)
         
     return {"status": "no message to process"}
