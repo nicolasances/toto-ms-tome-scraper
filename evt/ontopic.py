@@ -39,6 +39,7 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
 
             builder = EnvironBuilder(
                 method='POST',
+                path='/blogs', 
                 data=json.dumps({
                     "blogURL": decoded_message['data'].get("blogURL"),
                     "blogType": "craft", 
