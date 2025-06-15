@@ -67,7 +67,25 @@ class KnowledgeBaseStorage:
         
         return StorageBlogStructure(topic_code, section_codes)
     
-
-
+    def delete_topic_content(self, topic_name: str): 
+        """Deletes all the GCS stored files for the specified topic
+        Args:
+            topic_name (str): The name of the topic to delete.
+        """
+        self.logger.log(self.cid, f'Deleting topic "{topic_name}" from the knowledge base')
+        
+        # 1. Get the Bucket
+        bucket = self.client.get_bucket(self.config.get_tome_bucket_name())
+        
+        # 2. Generate the Topic Code 
+        topic_code = generate_topic_code(topic_name)
+        
+        # 3. Delete all the files in the topic folder
+        blobs = bucket.list_blobs(prefix=f'{self.knowledge_base_folder}/{topic_code}/')
+        for blob in blobs:
+            self.logger.log(self.cid, f'Deleting Knowledge Base file: {blob.name} from GCS bucket {bucket.name}')
+            blob.delete()
+            
+        self.logger.log(self.cid, f"Deleted all files for topic {topic_name}" )
         
         

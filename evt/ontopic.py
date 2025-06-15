@@ -10,6 +10,7 @@ from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from dlg.scrape import extract_blog_content, scrape_and_store_blog
+from storage.gcs import KnowledgeBaseStorage
 
 @toto_delegate(config_class=Config)
 def on_topic_created(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -30,10 +31,18 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
         
         print(f"Received Pub/Sub message: {decoded_message}")
 
-        # KUD Uploaded Event Handling
+        # React to 'topicCreated' event
+        # Scrape the blog and store its content in GCS
         if decoded_message["type"] == "topicCreated": 
             
             # Call the function to extract blog content
             return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), exec_context)
+        
+        elif decoded_message["type"] == "topicDeleted":
+            
+            # Delete all the content related to the topic
+            KnowledgeBaseStorage(exec_context).delete_topic_content(decoded_message['data'].get('name'))
+            
+            return {"status": "topic content deleted"}
         
     return {"status": "no message to process"}
