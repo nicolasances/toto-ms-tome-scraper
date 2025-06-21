@@ -33,7 +33,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, user: str, exec_contex
     # 5. Event on PubSub
     event_publisher = TotoEventPublisher(kb_structure.topic_code, exec_context)
     
-    event_publisher.publishEvent(kb_structure.topic_code, 'topicContentSavedInKB', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
+    event_publisher.publishEvent(kb_structure.topic_code, 'topicScraped', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
         "topic_code": kb_structure.topic_code, 
         "user": user
     })
