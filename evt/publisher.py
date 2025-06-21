@@ -29,7 +29,7 @@ class TotoEventPublisher:
             "data": data
         })
 
-        logger.log(self.cid, f"Publishing the event [ {eventType} ] for object with id [ {id} ]. The following message is to be published: [ {message} ]")
+        logger.log(self.cid, f"Publishing the event [ {eventType} ] on topic [ {self.topic} ] for object with id [ {id} ]. The following message is to be published: [ {message} ]")
 
         try:
             self.publisher.publish(self.topic, data=message.encode('utf-8'))
