@@ -32,9 +32,14 @@ class TotoEventPublisher:
         logger.log(self.cid, f"Publishing the event [ {eventType} ] on topic [ {self.topic} ] for object with id [ {id} ]. The following message is to be published: [ {message} ]")
 
         try:
-            self.publisher.publish(self.topic, data=message.encode('utf-8'))
             
-            logger.log(self.cid, f"Successfully published the event [ {eventType} ]")
+            topic_path = self.publisher.topic_path(os.getenv('GCP_PID'), self.topic)
+            
+            future = self.publisher.publish(topic_path, data=message.encode('utf-8'))
+            
+            message_id = future.result()
+            
+            logger.log(self.cid, f"Successfully published the event [ {eventType} ] - Message Id: [ {message_id} ]")
             
             return {"published": True}
         
