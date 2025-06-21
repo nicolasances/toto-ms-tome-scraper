@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import os
 from google.cloud import pubsub_v1
 
 class TotoEventPublisher:
