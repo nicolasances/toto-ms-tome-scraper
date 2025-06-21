@@ -13,6 +13,7 @@ Flask-Cors==5.0.0
 google-api-core==2.24.0
 google-auth==2.37.0
 google-cloud-core==2.4.1
+google-cloud-pubsub==2.30.0
 google-cloud-secret-manager==2.22.0
 google-cloud-storage==2.19.0
 google-crc32c==1.6.0
@@ -28,6 +29,9 @@ itsdangerous==2.2.0
 Jinja2==3.1.5
 jmespath==1.0.1
 MarkupSafe==3.0.2
+opentelemetry-api==1.34.1
+opentelemetry-sdk==1.34.1
+opentelemetry-semantic-conventions==0.55b1
 playwright==1.49.1
 proto-plus==1.25.0
 protobuf==5.29.2

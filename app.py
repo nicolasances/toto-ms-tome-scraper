@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher
+from dlg.test.test_pubsub import test_pubsub
 from evt.ontopic import on_topic_created
 
 app = Flask(__name__)
@@ -29,6 +30,10 @@ def on_topic_created_event():
 @app.route('/test/refresher', methods=['POST'])
 def test_refresher_generation(): 
     return test_refresher(request)
+
+@app.route('/test/pubsub', methods=['POST'])
+def test_pubsub_integration(): 
+    return test_pubsub(request)
 
 
 if __name__ == '__main__':
