@@ -39,16 +39,18 @@ def on_topic_event(request: Request, user_context: UserContext, exec_context: Ex
 
         # React to 'topicCreated' event
         # Scrape the blog and store its content in GCS
-        if decoded_message["type"] == TopicEvent.TOPIC_CREATED: 
+        if decoded_message["type"] == TopicEvent.TOPIC_CREATED.value: 
             
             # Call the function to extract blog content
             return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), decoded_message['data'].get('id'), decoded_message['data'].get('user'), exec_context)
         
-        elif decoded_message["type"] == TopicEvent.TOPIC_DELETED:
+        elif decoded_message["type"] == TopicEvent.TOPIC_DELETED.value:
             
             # Delete all the content related to the topic
             KnowledgeBaseStorage(exec_context).delete_topic_content(decoded_message['data'].get('name'))
             
             return {"status": "topic content deleted"}
+        
+        logger.log(cid, f"Event {decoded_message['type']} is not handled by this service. Skipping.")
         
     return {"status": "no message to process"}
