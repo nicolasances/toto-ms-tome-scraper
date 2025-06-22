@@ -4,7 +4,7 @@ from flask_cors import CORS
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher
 from dlg.test.test_pubsub import test_pubsub
-from evt.ontopic import on_topic_created
+from evt.ontopic import on_topic_event
 
 app = Flask(__name__)
 CORS(app, origins=["*"])
@@ -20,9 +20,9 @@ def post_blog_scraping_request():
 # -----------------------------------------------------------------------------------
 # EVENTS
 # -----------------------------------------------------------------------------------
-@app.route('/events', methods=['POST'])
-def on_topic_created_event(): 
-    return on_topic_created(request)
+@app.route('/events/topic', methods=['POST'])
+def post_topic_event(): 
+    return on_topic_event(request)
 
 # -----------------------------------------------------------------------------------
 # TESTS

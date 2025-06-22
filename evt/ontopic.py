@@ -13,7 +13,7 @@ from dlg.scrape import extract_blog_content, scrape_and_store_blog
 from storage.gcs import KnowledgeBaseStorage
 
 @toto_delegate(config_class=Config)
-def on_topic_created(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
+def on_topic_event(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """This API Endpoint reacts to the creation of a topic, received on pubsub on the topic 'tometopics' (event 'topicCreated').
     
     It triggers the extract_blog_content function to extract the text content of a blog.
@@ -25,11 +25,12 @@ def on_topic_created(request: Request, user_context: UserContext, exec_context: 
 
         message_data = data["message"]["data"]
 
-        print(f"Received message data: {message_data}")
-
         decoded_message = json.loads(base64.b64decode(message_data).decode('utf-8'))
+    
+        logger = exec_context.logger
+        cid = message_data['cid']
         
-        print(f"Received Pub/Sub message: {decoded_message}")
+        logger.log(cid, f"Received Pub/Sub message: {decoded_message}")
 
         # React to 'topicCreated' event
         # Scrape the blog and store its content in GCS
