@@ -42,7 +42,7 @@ def on_topic_event(request: Request, user_context: UserContext, exec_context: Ex
         if decoded_message["type"] == TopicEvent.TOPIC_CREATED.value: 
             
             # Call the function to extract blog content
-            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), decoded_message['data'].get('id'), decoded_message['data'].get('user'), exec_context)
+            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), decoded_message.get('id'), decoded_message['data'].get('user'), exec_context)
         
         elif decoded_message["type"] == TopicEvent.TOPIC_DELETED.value:
             
