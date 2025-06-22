@@ -14,7 +14,7 @@ from scraper.scrape import scrape_blog
 from storage.gcs import KnowledgeBaseStorage, StorageBlogStructure
 from evt.publisher import TotoEventPublisher
 
-def scrape_and_store_blog(blog_url: str, topic_name: str, user: str, exec_context: ExecutionContext): 
+def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
@@ -34,6 +34,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, user: str, exec_contex
     event_publisher = TotoEventPublisher('tometopics', exec_context)
     
     event_publisher.publishEvent(kb_structure.topic_code, 'topicScraped', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
+        "topic_id": topic_id, 
         "topic_code": kb_structure.topic_code, 
         "user": user
     })

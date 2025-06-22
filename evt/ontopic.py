@@ -1,6 +1,7 @@
 
 from datetime import datetime
 import base64
+from enum import Enum
 import json
 from flask import Request
 from config.config import Config
@@ -9,8 +10,12 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-from dlg.scrape import extract_blog_content, scrape_and_store_blog
+from dlg.scrape import scrape_and_store_blog
 from storage.gcs import KnowledgeBaseStorage
+
+class TopicEvent(Enum):
+    TOPIC_CREATED = "topicCreated"
+    TOPIC_DELETED = "topicDeleted"
 
 @toto_delegate(config_class=Config)
 def on_topic_event(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
@@ -34,12 +39,12 @@ def on_topic_event(request: Request, user_context: UserContext, exec_context: Ex
 
         # React to 'topicCreated' event
         # Scrape the blog and store its content in GCS
-        if decoded_message["type"] == "topicCreated": 
+        if decoded_message["type"] == TopicEvent.TOPIC_CREATED: 
             
             # Call the function to extract blog content
-            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), decoded_message['data'].get('user'), exec_context)
+            return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), decoded_message['data'].get('id'), decoded_message['data'].get('user'), exec_context)
         
-        elif decoded_message["type"] == "topicDeleted":
+        elif decoded_message["type"] == TopicEvent.TOPIC_DELETED:
             
             # Delete all the content related to the topic
             KnowledgeBaseStorage(exec_context).delete_topic_content(decoded_message['data'].get('name'))
