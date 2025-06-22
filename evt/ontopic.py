@@ -33,7 +33,7 @@ def on_topic_event(request: Request, user_context: UserContext, exec_context: Ex
         decoded_message = json.loads(base64.b64decode(message_data).decode('utf-8'))
     
         logger = exec_context.logger
-        cid = message_data['cid']
+        cid = decoded_message.get('cid')
         
         logger.log(cid, f"Received Pub/Sub message: {decoded_message}")
 
