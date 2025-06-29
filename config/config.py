@@ -25,9 +25,6 @@ class Config(TotoConfig):
         Returns:
             string: the (unique) name of the bucket
         """
-        if os.getenv('ENVIRONMENT') == 'prod':
-            return 'totolive-tome-bucket'
-        
-        return 'totoexperiments-tome-bucket'
+        return f"{os.getenv('GCP_PID')}-tome-bucket"
 
     
