@@ -13,7 +13,7 @@ env:
 jobs:
   # This workflow contains a single job called "release"
   release:
-    name: Build & Deploy to GCP
+    name: Prod Build & Deploy to GCP
     environment: totolive
     runs-on: ubuntu-latest
 
