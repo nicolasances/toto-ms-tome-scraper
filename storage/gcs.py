@@ -35,7 +35,7 @@ class KnowledgeBaseStorage:
             str: The generated topic_code 
         """
         
-        self.logger.log(self.cid, f'Storing Blog "{blog_content.title}" in the knowledge base')
+        self.logger.log(self.cid, f'Storing Blog "{blog_content.title}" in the knowledge base. Storing {len(blog_content.sections)} sections.')
         
         # 1. Get the Bucket
         bucket = self.client.get_bucket(self.config.get_tome_bucket_name())
