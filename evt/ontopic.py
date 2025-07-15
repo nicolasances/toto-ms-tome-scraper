@@ -15,6 +15,7 @@ from storage.gcs import KnowledgeBaseStorage
 
 class TopicEvent(Enum):
     TOPIC_CREATED = "topicCreated"
+    TOPIC_REFRESHED = "topicRefreshed"
     TOPIC_DELETED = "topicDeleted"
 
 @toto_delegate(config_class=Config)
@@ -39,7 +40,7 @@ def on_topic_event(request: Request, user_context: UserContext, exec_context: Ex
 
         # React to 'topicCreated' event
         # Scrape the blog and store its content in GCS
-        if decoded_message["type"] == TopicEvent.TOPIC_CREATED.value: 
+        if decoded_message["type"] == TopicEvent.TOPIC_CREATED.value or decoded_message["type"] == TopicEvent.TOPIC_REFRESHED.value: 
             
             # Call the function to extract blog content
             return scrape_and_store_blog(decoded_message['data'].get('blogURL'), decoded_message['data'].get('name'), decoded_message.get('id'), decoded_message['data'].get('user'), exec_context)
