@@ -35,6 +35,7 @@ def on_topic_event(request: Request, user_context: UserContext, exec_context: Ex
     
         logger = exec_context.logger
         cid = decoded_message.get('cid')
+        exec_context.cid = cid
         
         logger.log(cid, f"Received Pub/Sub message: {decoded_message}")
 
