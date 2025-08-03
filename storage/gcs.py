@@ -43,7 +43,14 @@ class KnowledgeBaseStorage:
         # 2. Generate the Topic Code 
         topic_code = generate_topic_code(blog_content.title)
         
-        # 3. Store each section of the blog into its own file in the bucket
+        # 3. Delete all files in the topic folder if it exists
+        blobs = bucket.list_blobs(prefix=f'{self.knowledge_base_folder}/{topic_code}/')
+        
+        for blob in blobs:
+            self.logger.log(self.cid, f'Deleting Knowledge Base file: {blob.name} from GCS bucket {bucket.name}')
+            blob.delete()
+
+        # 4. Store each section of the blog into its own file in the bucket
         section_codes = []
         for section in blog_content.sections: 
             

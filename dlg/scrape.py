@@ -24,10 +24,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
     # 2. Extract all the text
     blog_content: BlogContent = CraftBlobTextExtractor(html_content, topic_name).get_content()
     
-    # 3. Create a Timeline 
-    # timeline: Timeline = TimelineAgent(exec_context=exec_context).extract_timeline(merge_sections(blog_content))
-    
-    # 4. Store the blog content on GCS
+    # 3. Store the blog content on GCS
     kb_structure: StorageBlogStructure = KnowledgeBaseStorage(exec_context).store_blog_content(blog_content)
     
     # 5. Event on PubSub
