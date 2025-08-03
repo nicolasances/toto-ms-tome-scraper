@@ -52,21 +52,21 @@ class KnowledgeBaseStorage:
 
         # 4. Store each section of the blog into its own file in the bucket
         section_codes = []
-        for section in blog_content.sections: 
+        for index, section in enumerate(blog_content.sections): 
             
             self.logger.log(self.cid, f'Storing Section "{section.title}" in the knowledge base')
             
-            # 3.1 Generate the Section Code
+            # 4.1 Generate the Section Code
             section_code = generate_section_code(section.title)
             section_codes.append(section_code)
             
-            # 3.2 Generate the file path
-            filepath = filepath = f'{self.knowledge_base_folder}/{topic_code}/{section_code}.txt'
+            # 4.2 Generate the file path
+            filepath = filepath = f'{self.knowledge_base_folder}/{topic_code}/{index}-{section_code}.txt'
             
-            # 3.3 Get the blob
+            # 4.3 Get the blob
             blob = bucket.blob(filepath)
             
-            # 3.4 Write the content
+            # 4.4 Write the content
             self.logger.log(self.cid, f'Writing Knowledge Base file: {blob.name} to GCS bucket {bucket.name}')
             
             with blob.open('w') as file:
