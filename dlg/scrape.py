@@ -33,6 +33,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
     event_publisher.publishEvent(kb_structure.topic_code, 'topicScraped', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
         "topicId": topic_id, 
         "topicCode": kb_structure.topic_code, 
+        "numSections": len(blog_content.sections),
         "user": user
     })
     
