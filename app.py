@@ -17,7 +17,7 @@ def health_check():
 def smoke_base():
     return {"api": "toto-ms-tome-scraper", "running": True}
 
-@app.route('/tomescraper', methods=['GET'])
+@app.route('/tomescraper/smoke', methods=['GET'])
 def smoke():
     return {"api": "toto-ms-tome-scraper", "running": True}
 
