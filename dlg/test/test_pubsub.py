@@ -14,7 +14,7 @@ from model.errors import  TotoValidationError
 from model.timeline import Timeline
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
-from storage.gcs import KnowledgeBaseStorage
+from storage.impl.gcs import KnowledgeBaseStorage
 from pymongo import MongoClient
 
 from util.section import merge_sections

@@ -11,7 +11,7 @@ from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from dlg.scrape import scrape_and_store_blog
-from storage.gcs import KnowledgeBaseStorage
+from storage.impl.gcs import KnowledgeBaseStorage
 
 class TopicEvent(Enum):
     TOPIC_CREATED = "topicCreated"

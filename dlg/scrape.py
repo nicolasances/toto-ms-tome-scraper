@@ -11,8 +11,7 @@ from model.blog import BlogContent
 from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
-from storage.gcs import KnowledgeBaseStorage, StorageBlogStructure
-from evt.publisher import TotoEventPublisher
+from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
 
 def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
@@ -25,17 +24,17 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
     blog_content: BlogContent = CraftBlobTextExtractor(html_content, topic_name).get_content()
     
     # 3. Store the blog content on GCS
-    kb_structure: StorageBlogStructure = KnowledgeBaseStorage(exec_context).store_blog_content(blog_content)
+    kb_structure: StorageBlogStructure = KnowledgeBaseStorageFactory.get_storage(exec_context).store_blog_content(blog_content)
     
     # 5. Event on PubSub
-    event_publisher = TotoEventPublisher('tometopics', exec_context)
+    # event_publisher = TotoEventPublisher('tometopics', exec_context)
     
-    event_publisher.publishEvent(kb_structure.topic_code, 'topicScraped', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
-        "topicId": topic_id, 
-        "topicCode": kb_structure.topic_code, 
-        "numSections": len(blog_content.sections),
-        "user": user
-    })
+    # event_publisher.publishEvent(kb_structure.topic_code, 'topicScraped', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
+    #     "topicId": topic_id, 
+    #     "topicCode": kb_structure.topic_code, 
+    #     "numSections": len(blog_content.sections),
+    #     "user": user
+    # })
     
     # Return the blog content, the topic id and the blog url
     return {

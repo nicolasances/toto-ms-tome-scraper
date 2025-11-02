@@ -1,22 +1,12 @@
-from typing import List
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from model.blog import BlogContent
-from model.timeline import Timeline
 from util.naming import generate_section_code, generate_topic_code
+from storage.kb import KnowledgeBaseStorage, StorageBlogStructure
 from google.cloud import storage
 
-class StorageBlogStructure: 
-    
-    topic_code: str 
-    section_codes: List[str]
-    
-    def __init__(self, topic_code: str, section_codes: List[str]): 
-        self.topic_code = topic_code
-        self.section_codes = section_codes
-    
 
-class KnowledgeBaseStorage: 
+class GCSKnowledgeBaseStorage(KnowledgeBaseStorage): 
     
     knowledge_base_folder: str = 'kb'
     
