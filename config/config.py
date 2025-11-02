@@ -6,7 +6,7 @@ from totoapicontroller.model.TotoConfig import TotoConfig, CloudProvider
 class Config(TotoConfig): 
     
     def __init__(self):
-        super().__init__(cloud_provider=os.getenv('HYPERSCALER') == 'aws' ? CloudProvider.AWS : CloudProvider.GCP)
+        super().__init__(cloud_provider=CloudProvider.AWS if os.getenv('HYPERSCALER') == 'aws' else CloudProvider.GCP)
         
         self.logger.log("INIT", "Configuration loaded!")
         
