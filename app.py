@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request
 from flask_cors import CORS
 
@@ -19,7 +20,7 @@ def smoke_base():
 
 @app.route('/tomescraper/smoke', methods=['GET'])
 def smoke():
-    return {"api": "toto-ms-tome-scraper", "running": True}
+    return {"api": "toto-ms-tome-scraper", "running": True, "hyperscaler": os.getenv("HYPERSCALER", "not-set"), "env": os.getenv("ENVIRONMENT", "not-set")}
 
 @app.route('/tomescraper/blogs', methods=['POST'])
 def post_blog_scraping_request(): 
