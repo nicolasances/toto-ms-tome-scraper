@@ -9,29 +9,29 @@ from evt.ontopic import on_topic_event
 app = Flask(__name__)
 CORS(app, origins=["*"])
 
-@app.route('/', methods=['GET'])
+@app.route('/tomescraper', methods=['GET'])
 def smoke():
     return {"api": "toto-ms-tome-scraper", "running": True}
 
-@app.route('/blogs', methods=['POST'])
+@app.route('/tomescraper/blogs', methods=['POST'])
 def post_blog_scraping_request(): 
     return extract_blog_content(request)
 
 # -----------------------------------------------------------------------------------
 # EVENTS
 # -----------------------------------------------------------------------------------
-@app.route('/events/topic', methods=['POST'])
+@app.route('/tomescraper/events/topic', methods=['POST'])
 def post_topic_event(): 
     return on_topic_event(request)
 
 # -----------------------------------------------------------------------------------
 # TESTS
 # -----------------------------------------------------------------------------------
-@app.route('/test/refresher', methods=['POST'])
+@app.route('/tomescraper/test/refresher', methods=['POST'])
 def test_refresher_generation(): 
     return test_refresher(request)
 
-@app.route('/test/pubsub', methods=['POST'])
+@app.route('/tomescraper/test/pubsub', methods=['POST'])
 def test_pubsub_integration(): 
     return test_pubsub(request)
 
