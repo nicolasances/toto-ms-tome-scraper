@@ -13,7 +13,7 @@ from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
 
-def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
+def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: ExecutionContext): 
     
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
