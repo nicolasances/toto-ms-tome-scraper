@@ -50,7 +50,7 @@ class PubSubFactory:
 
         # 2. Create the PubSub according to the hyperscaler
         if hyperscaler == 'aws':
-            return SNS(region)
+            return SNS(region, exec_context)
         elif hyperscaler == 'gcp':
             return GCPPubSub(exec_context)
 
