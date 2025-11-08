@@ -5,13 +5,17 @@ from totoapicontroller.model.TotoConfig import TotoConfig, CloudProvider
 @singleton
 class Config(TotoConfig): 
     
+    topics: dict[str, str]
+    
     def __init__(self):
 
-        hyperscaler = os.getenv('HYPERSCALER') if os.getenv('HYPERSCALER') else 'aws'
+        super().__init__()
 
-        super().__init__(cloud_provider=CloudProvider.AWS if hyperscaler == 'aws' else CloudProvider.GCP)
-
-        self.logger.log("INIT", f"Using hyperscaler: {hyperscaler}")
+        self.topics = {
+            "tometopics": self.access_secret_version("tome_topics_topic_name")
+        }
+        
+        self.logger.log("INIT", f"Topics configured: {self.topics}")
         self.logger.log("INIT", "Configuration loaded!")
         
     def get_api_name(self) -> str:

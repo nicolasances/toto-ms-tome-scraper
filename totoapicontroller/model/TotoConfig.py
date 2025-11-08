@@ -19,23 +19,17 @@ class TotoConfig(ABC):
     jwt_expected_audience: str
     environment: str
     
-    def __init__(self, cloud_provider: CloudProvider = CloudProvider.GCP) -> None:
+    def __init__(self) -> None:
         
         self.logger = TotoLogger(self.get_api_name())
-        
-        self.logger.log("INIT", f"Loading Configuration.. Cloud Provider: {cloud_provider}")
-        
-        # Load the right environment from ENV var
-        self.environment = os.environ.get("ENVIRONMENT")
-        
-        self.logger.log("INIT", f"Environment: {self.environment}")
-        
-        if cloud_provider == CloudProvider.GCP:
-            self.jwt_key = self.access_secret_version("jwt-signing-key")
-            self.jwt_expected_audience = self.access_secret_version("toto-expected-audience")
-        else: 
-            self.jwt_key = self.access_aws_secret_version(f"{self.environment}/jwt-signing-key", os.getenv('AWS_REGION', 'eu-north-1'))
-            self.jwt_expected_audience = self.access_aws_secret_version(f"{self.environment}/toto-expected-audience", os.getenv('AWS_REGION', 'eu-north-1'))
+        self.environment = os.getenv("ENVIRONMENT", 'dev')
+        self.hyperscaler = os.getenv('HYPERSCALER', 'gcp') 
+        self.region = os.getenv('AWS_REGION', 'eu-north-1') if self.hyperscaler == 'aws' else os.getenv('GCP_REGION', 'europe-west1')
+
+        self.logger.log("INIT", f"Loading Configuration.. Hyperscaler: {self.hyperscaler}, Environment: {self.environment}, Region: {self.region}")
+
+        self.jwt_key = self.access_secret_version("jwt-signing-key")
+        self.jwt_expected_audience = self.access_secret_version("toto-expected-audience")
         
     
     @abstractmethod
@@ -45,7 +39,25 @@ class TotoConfig(ABC):
     def is_path_excluded(self, path: str) -> bool:
         return False
     
-    def access_secret_version(self, secret_id, version_id="latest"):
+    def access_secret_version(self, secret_id: str):
+        """Retrieves a secret from the right cloud provider, based on the environment
+
+        Args:
+            secret_id (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        
+        if self.hyperscaler == 'gcp':
+            self.logger.log("INIT", f"Accessing secret {secret_id} for hyperscaler {self.hyperscaler}")
+            return self.access_gcp_secret_version(secret_id)
+        else:
+            aws_region = os.getenv('AWS_REGION', 'eu-north-1')
+            self.logger.log("INIT", f"Accessing secret {self.environment}/{secret_id} for hyperscaler {self.hyperscaler} in region {aws_region}")
+            return self.access_aws_secret_version(f"{self.environment}/{secret_id}", aws_region)
+
+    def access_gcp_secret_version(self, secret_id, version_id="latest"):
         """
         Retrieves a Secret on GCP Secret Manager
         """

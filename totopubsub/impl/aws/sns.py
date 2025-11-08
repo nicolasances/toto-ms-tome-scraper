@@ -1,23 +1,44 @@
+from ast import Dict
+import os
 import boto3
 import json
+from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totopubsub.model import TotoMessage
 from totopubsub.pubsub import PubSub
 
 
 class SNS(PubSub):
     
-    def __init__(self):
-        self.sns_client = boto3.client('sns')
-        self.sts_client = boto3.client('sts')
-    
-    def publish_message(self, topic_name: str, message: dict):
+    def __init__(self, region: str, exec_context: ExecutionContext ):
+        self.sns_client = boto3.client('sns', region_name=region)
+        self.sts_client = boto3.client('sts', region_name=region)
+        self.exec_context = exec_context
+
+    def publish_message(self, topic_name: str, message: TotoMessage) -> Dict:
         """
         Publish a message to an SNS topic.
         
         Args:
             topic_name: The name of the SNS topic (will be used to construct ARN or can be full ARN)
-            message: Dictionary containing the message data
+            message: TotoMessage protocol object containing the message data
+            
+        Returns:
+            str: The message ID of the published message
+            
+        Raises:
+            Exception: If publishing fails
         """
         try:
+            # Convert TotoMessage to dict for serialization
+            message_dict = {
+                "timestamp": message.timestamp,
+                "cid": message.cid,
+                "id": message.id,
+                "type": message.type,
+                "msg": message.msg,
+                "data": message.data
+            }
+
             # If topic_name is not an ARN, construct it
             if not topic_name.startswith('arn:aws:sns:'):
 
@@ -30,11 +51,13 @@ class SNS(PubSub):
 
             else:
                 topic_arn = topic_name
-            
+
+            self.exec_context.logger.log(self.exec_context.cid, f"Publishing the event [ {message.type} ] on topic [ {topic_name} ]..")
+
             # Publish the message
             response = self.sns_client.publish(
                 TopicArn=topic_arn,
-                Message=json.dumps(message),
+                Message=json.dumps(message_dict),
                 MessageAttributes={
                     'ContentType': {
                         'DataType': 'String',
@@ -42,8 +65,10 @@ class SNS(PubSub):
                     }
                 }
             )
-            
-            return response['MessageId']
+
+            self.exec_context.logger.log(self.exec_context.cid, f"Successfully published the event [ {message.type} ] - Message Id: [ {response['MessageId']} ]")
+
+            return {"messageId": response['MessageId']}
             
         except Exception as e:
             raise Exception(f"Failed to publish message to SNS topic {topic_name}: {str(e)}")

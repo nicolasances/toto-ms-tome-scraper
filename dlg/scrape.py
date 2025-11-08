@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from flask import Request
 from config.config import Config
 
@@ -12,6 +13,8 @@ from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
+from totopubsub.model import TotoMessage
+from totopubsub.pubsub import PubSubFactory
 
 def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: ExecutionContext): 
     
@@ -27,19 +30,25 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: Executio
     kb_structure: StorageBlogStructure = KnowledgeBaseStorageFactory.get_storage(exec_context).store_blog_content(blog_content)
     
     # 5. Event on PubSub
-    # event_publisher = TotoEventPublisher('tometopics', exec_context)
+    event_publisher = PubSubFactory.create_pubsub(exec_context)
     
-    # event_publisher.publishEvent(kb_structure.topic_code, 'topicScraped', f"The content of topic {kb_structure.topic_code} has been saved in the GCS Knowledge Base", {
-    #     "topicId": topic_id, 
-    #     "topicCode": kb_structure.topic_code, 
-    #     "numSections": len(blog_content.sections),
-    #     "user": user
-    # })
+    msg = TotoMessage(
+        timestamp=datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+        cid=exec_context.cid,
+        id=kb_structure.topic_code,
+        type="topicScraped",
+        msg=f"The content of topic {kb_structure.topic_code} has been saved in the Knowledge Base",
+        data={
+            "topicCode": kb_structure.topic_code, 
+            "numSections": len(blog_content.sections)
+        }
+    )
+    
+    event_publisher.publish_message(topic_name=exec_context.config.topics['tometopics'], message=msg)
     
     # Return the blog content, the topic id and the blog url
     return {
         "blogContent": blog_content.__dict__,
-        # "topicId": str(topic_id), 
         "blogUrl": blog_url
     }
     
