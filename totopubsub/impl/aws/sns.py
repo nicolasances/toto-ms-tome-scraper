@@ -9,12 +9,13 @@ from totopubsub.pubsub import PubSub
 
 class SNS(PubSub):
     
-    def __init__(self, region: str, exec_context: ExecutionContext ):
+    def __init__(self, region: str, exec_context: ExecutionContext, pubsub_impl_name: str):
+        super().__init__(exec_context, pubsub_impl_name)
+
         self.sns_client = boto3.client('sns', region_name=region)
         self.sts_client = boto3.client('sts', region_name=region)
-        self.exec_context = exec_context
 
-    def publish_message(self, topic_name: str, message: TotoMessage) -> Dict:
+    def _publish_message(self, topic_name: str, message: TotoMessage) -> Dict:
         """
         Publish a message to an SNS topic.
         
@@ -52,8 +53,6 @@ class SNS(PubSub):
             else:
                 topic_arn = topic_name
 
-            self.exec_context.logger.log(self.exec_context.cid, f"Publishing the event [ {message.type} ] on topic [ {topic_name} ]..")
-
             # Publish the message
             response = self.sns_client.publish(
                 TopicArn=topic_arn,
@@ -65,8 +64,6 @@ class SNS(PubSub):
                     }
                 }
             )
-
-            self.exec_context.logger.log(self.exec_context.cid, f"Successfully published the event [ {message.type} ] - Message Id: [ {response['MessageId']} ]")
 
             return {"messageId": response['MessageId']}
             

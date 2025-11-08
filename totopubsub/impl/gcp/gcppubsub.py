@@ -9,17 +9,16 @@ import google.auth
 
 
 class GCPPubSub(PubSub):
-    
-    def __init__(self, exec_context: ExecutionContext): 
-        
-        self.exec_context = exec_context
-        self.cid = exec_context.cid
-        
+
+    def __init__(self, exec_context: ExecutionContext, pubsub_impl_name: str):
+
+        super().__init__(exec_context, pubsub_impl_name)
+
         # Only create one publisher client
         self.credentials, self.project_id = google.auth.default()
         self.publisher = pubsub_v1.PublisherClient(credentials=self.credentials)
     
-    def publish_message(self, topic_name: str, message: TotoMessage) -> Dict:
+    def _publish_message(self, topic_name: str, message: TotoMessage) -> Dict:
         """
         Publish a message to a GCP Pub/Sub topic.
         
@@ -33,8 +32,6 @@ class GCPPubSub(PubSub):
         Raises:
             Exception: If publishing fails
         """
-        logger = self.exec_context.logger
-
         # Convert TotoMessage to dict for serialization
         message_dict = {
             "timestamp": message.timestamp,
@@ -47,8 +44,6 @@ class GCPPubSub(PubSub):
 
         json_message = json.dumps(message_dict)
 
-        logger.log(self.cid, f"Publishing the event [ {message.type} ] on topic [ {topic_name} ] for object with id [ {message.id} ]. The following message is to be published: [ {json_message} ]")
-
         try:
 
             topic_path = self.publisher.topic_path(os.getenv('GCP_PID'), topic_name)
@@ -59,12 +54,10 @@ class GCPPubSub(PubSub):
             # For fire-and-forget scenarios, consider removing this
             message_id = future.result(timeout=30.0)  # Add timeout to prevent indefinite blocking
 
-            logger.log(self.cid, f"Successfully published the event [ {message.type} ] - Message Id: [ {message_id} ]")
-
             return {"messageId" : message_id}
 
         except Exception as e:
             error_msg = f"Publishing the event [ {message.type} ] failed. Error: {str(e)}"
-            logger.log(self.cid, error_msg, "error")
-            logger.log(self.cid, f"Failed message: [ {json_message} ]", "error")
+            self.exec_context.logger.log(self.exec_context.cid, error_msg, "error")
+            self.exec_context.logger.log(self.exec_context.cid, f"Failed message: [ {json_message} ]", "error")
             raise Exception(error_msg) from e

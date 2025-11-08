@@ -1,19 +1,17 @@
 
-from datetime import datetime
 from flask import Request
 from config.config import Config
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
-from totoapicontroller.TotoLogger import TotoLogger
 
 from model.blog import BlogContent
 from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
-from totopubsub.model import TotoMessage
+from totopubsub.model import TotoMessageData
 from totopubsub.pubsub import PubSubFactory
 
 def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: ExecutionContext): 
@@ -32,11 +30,9 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: Executio
     # 5. Event on PubSub
     event_publisher = PubSubFactory.create_pubsub(exec_context)
     
-    msg = TotoMessage(
-        timestamp=datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-        cid=exec_context.cid,
+    msg = TotoMessageData(
         id=kb_structure.topic_code,
-        type="topicScraped",
+        event_name="topicScraped",
         msg=f"The content of topic {kb_structure.topic_code} has been saved in the Knowledge Base",
         data={
             "topicCode": kb_structure.topic_code, 
