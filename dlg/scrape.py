@@ -11,7 +11,7 @@ from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
-from totopubsub.model import TotoMessageData
+from totopubsub.model import Context, TotoMessageData
 from totopubsub.pubsub import PubSubFactory
 
 def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: ExecutionContext): 
@@ -28,7 +28,13 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: Executio
     kb_structure: StorageBlogStructure = KnowledgeBaseStorageFactory.get_storage(exec_context).store_blog_content(blog_content)
     
     # 5. Event on PubSub
-    event_publisher = PubSubFactory.create_pubsub(exec_context)
+    pubsub_context = Context(
+        correlation_id=exec_context.cid,
+        region=exec_context.config.region,
+        hyperscaler=exec_context.config.hyperscaler
+    )
+    
+    event_publisher = PubSubFactory.create_pubsub(pubsub_context)
     
     msg = TotoMessageData(
         id=kb_structure.topic_code,
