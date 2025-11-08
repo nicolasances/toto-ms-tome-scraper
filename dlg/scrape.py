@@ -24,10 +24,6 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: Executio
     # 2. Extract all the text
     blog_content: BlogContent = CraftBlobTextExtractor(html_content, topic_name).get_content()
     
-    for section in blog_content.sections:
-        print(f"Section: {section.title} ")
-        print(section.content)
-    
     # 3. Store the blog content on GCS
     kb_structure: StorageBlogStructure = KnowledgeBaseStorageFactory.get_storage(exec_context).store_blog_content(blog_content)
     
