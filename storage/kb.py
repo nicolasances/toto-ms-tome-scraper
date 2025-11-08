@@ -64,7 +64,7 @@ class KnowledgeBaseStorageFactory:
             ValueError: If the storage type is not supported
         """
         hyperscaler = os.getenv("HYPERSCALER", "gcp").lower()
-        
+
         if hyperscaler == "gcp":
             from storage.impl.gcs import GCSKnowledgeBaseStorage
             return GCSKnowledgeBaseStorage(exec_context)
