@@ -14,7 +14,7 @@ from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
 from totopubsub.model import Context, TotoMessageData
 from totopubsub.pubsub import PubSubFactory
 
-def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: ExecutionContext): 
+def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
@@ -41,6 +41,8 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, exec_context: Executio
         event_name="topicScraped",
         msg=f"The content of topic {kb_structure.topic_code} has been saved in the Knowledge Base",
         data={
+            "topicId": topic_id,
+            "user": user,
             "topicCode": kb_structure.topic_code, 
             "numSections": len(blog_content.sections)
         }
@@ -77,6 +79,10 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
     blog_url = body.get("blogURL")
     blog_type = body.get("blogType")
     topic_name = body.get("topicName", None)
+    topic_id = body.get("topicId", None)
+    
+    # Extract the user from the user context
+    user = user_context.email
     
     # Validate that the blog_url is not None, that blog_type is not None, and that blog_type is 'craft'
     if blog_url is None: 
@@ -87,6 +93,8 @@ def extract_blog_content(request: Request, user_context: UserContext, exec_conte
         return TotoValidationError("The blogType is unsupported").__dict__
     if topic_name is None:
         return TotoValidationError("The topicName is mandatory").__dict__
+    if topic_id is None:
+        return TotoValidationError("The topicId is mandatory").__dict__
     
-    return scrape_and_store_blog(blog_url, topic_name, exec_context)
+    return scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
     
