@@ -44,6 +44,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
             "topicId": topic_id,
             "user": user,
             "topicCode": kb_structure.topic_code, 
+            "sections": kb_structure.section_codes,
             "numSections": len(blog_content.sections)
         }
     )
