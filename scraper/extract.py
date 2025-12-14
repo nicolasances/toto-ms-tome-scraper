@@ -1,12 +1,15 @@
 from typing import List
 from bs4 import BeautifulSoup
+from model.blog import BlogContent, BlogSection
+from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-class BlobTextExtractor:
+class CraftBlobTextExtractor:
     
-    def __init__(self, html_content: str): 
+    def __init__(self, html_content: str, topic_title: str): 
         self.html_content = html_content
+        self.topic_title = topic_title
         
-    def get_text(self) -> List[str]: 
+    def get_content(self) -> BlogContent: 
         """Retrieves all the text content of the blog. 
         This ONLY retrieves the <p> content. 
         It will not retrieve the headers, for example.
@@ -20,7 +23,7 @@ class BlobTextExtractor:
         # Extract the h1 tag
         h1 = soup.find("h1")
         
-        blob_title = h1.get_text(strip=True) if h1 is not None else None
+        blob_title = self.topic_title 
         
         # Find all tags that are either p or h4 
         tags = soup.find_all(["p", "h4"])
@@ -32,14 +35,14 @@ class BlobTextExtractor:
         section = None
         for tag in tags:
             if tag.name == "h4":
-                section = {"title": tag.get_text(strip=True), "content": []}
+                section = {"title": tag.get_text(strip=True), "content": [f"<h1>{tag.get_text(strip=True)}</h1>\n"]}
                 sections.append(section)
             elif tag.name == "p" and section is not None:
-                section["content"].append(tag.get_text(strip=True))
-                
-        return {
-            "title": blob_title,    
-            "sections": sections
-        }
+                section["content"].append(f"<p>{tag.get_text(strip=True)}</p>")
+    
+        # Create the BlogContent object. Each section is ordered accordingly to the order in which they were found in the blog
+        blog_content = BlogContent(blob_title, [BlogSection(section["title"], "\n".join(section["content"]), i) for i, section in enumerate(sections)])
+        
+        return blog_content
     
     
