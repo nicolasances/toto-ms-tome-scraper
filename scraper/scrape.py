@@ -24,7 +24,7 @@ def scrape_blog(url: str, timeout: int = 10000) -> str:
         
         # Wait for elements that are necessary for the blog to load
         # This is Craft blog specific
-        page.wait_for_selector("p.sc-dnaUSb", timeout=timeout)  # 10 seconds timeout
+        page.wait_for_selector("h1", timeout=timeout)  # 10 seconds timeout
         
         # Extract the content of the blog
         blog_content = page.content()  # Get the entire page HTML
