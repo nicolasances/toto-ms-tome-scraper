@@ -1,6 +1,6 @@
 
 import traceback
-from flask import Request
+from fastapi import Request
 from agent.refresher import RefreshersGenerator
 from agent.timeline import TimelineAgent
 from config.config import Config
@@ -20,13 +20,13 @@ from pymongo import MongoClient
 from util.section import merge_sections
 
 @toto_delegate(config_class=Config)
-def test_refresher(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
+async def test_refresher(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     
     config: Config = exec_context.config
     logger = exec_context.logger
     cid = exec_context.cid
     
-    data = request.get_json()
+    data = await request.json()
     
     topic_code = data.get('topicCode')
     section_code = data.get('sectionCode')

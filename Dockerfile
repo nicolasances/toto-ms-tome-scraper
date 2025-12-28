@@ -7,7 +7,6 @@ WORKDIR /app
 # Install other Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install gunicorn
 
 # Install Playwright
 RUN pip install --no-cache-dir playwright
@@ -21,6 +20,6 @@ EXPOSE 8080
 
 ENV PYTHONUNBUFFERED=TRUE
 
-# Command to run the application using Gunicorn
-CMD gunicorn --bind 0.0.0.0:8080 app:app --enable-stdio-inheritance --timeout 3600 --workers=2
+# Command to run the application using Uvicorn
+CMD uvicorn app:app --host 0.0.0.0 --port 8080 --workers 2 --timeout-keep-alive 3600
 # CMD python scrape.py
