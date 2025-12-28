@@ -3,7 +3,7 @@ from datetime import datetime
 import base64
 from enum import Enum
 import json
-from flask import Request
+from fastapi import Request
 from config.config import Config
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
@@ -19,13 +19,13 @@ class TopicEvent(Enum):
     TOPIC_DELETED = "topicDeleted"
 
 @toto_delegate(config_class=Config)
-def on_topic_event(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
+async def on_topic_event(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """This API Endpoint reacts to the creation of a topic, received on pubsub on the topic 'tometopics' (event 'topicCreated').
     
     It triggers the extract_blog_content function to extract the text content of a blog.
     """
     
-    data = request.get_json()
+    data = await request.json()
 
     if "message" in data: 
 

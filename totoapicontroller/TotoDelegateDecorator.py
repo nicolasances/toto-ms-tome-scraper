@@ -1,4 +1,4 @@
-from flask import Request
+from fastapi import Request
 from totoapicontroller.TotoLogger import TotoLogger
 
 from totoapicontroller.TotoTokenVerifier import TotoTokenVerifier
@@ -16,7 +16,7 @@ def toto_delegate(config_class):
             dlg (callable): a function to decorate, that needs to have a signature f(request: Request, user_context: UserContext, exec_context: ExecutionContext)
         """
         
-        def decorator(request: Request): 
+        async def decorator(request: Request): 
             """Decorator for a Toto Delegate function
             
             This decorator performs the following operations: 
@@ -26,7 +26,7 @@ def toto_delegate(config_class):
             4. Creates the Execution Context to pass it to the delegate
 
             Args:
-                request (Request): Flask Request object
+                request (Request): FastAPI Request object
 
             Returns:
                 any: the returned value from the decorated function or a validation error
@@ -36,16 +36,16 @@ def toto_delegate(config_class):
             logger = TotoLogger(config.get_api_name())
             
             # Extract info 
-            cid, _ = extract_info(request)
+            cid, _ = await extract_info(request)
             
             # Validate the request
-            validation_result = validate_request(request, config)
+            validation_result = await validate_request(request, config)
             
             if not validation_result.validation_passed: 
-                return validation_result.to_flask_response()
+                return validation_result.to_fastapi_response()
             
             # Log the incoming call
-            logger.log(cid, f"Incoming API Call: {request.method} {request.path}")
+            logger.log(cid, f"Incoming API Call: {request.method} {request.url.path}")
             
             # Create a user context object
             user_context = UserContext(validation_result.token_verification_result.user_email)
@@ -61,7 +61,7 @@ def toto_delegate(config_class):
     return delegate
 
 
-def extract_info(request: Request) :
+async def extract_info(request: Request) :
     """Extracts needed info from the request
     
     Returns cid and auth header
@@ -75,7 +75,7 @@ def extract_info(request: Request) :
 
     return cid, auth_header
 
-def validate_request(request: Request, config: TotoConfig) -> ValidationResult: 
+async def validate_request(request: Request, config: TotoConfig) -> ValidationResult: 
     """ Validates the core request data that is mandatory for any call
 
     Args:
@@ -85,15 +85,15 @@ def validate_request(request: Request, config: TotoConfig) -> ValidationResult:
         ValidationResult: the result of the validation. The flag "validation_passed" will indicate whether the validation was successfull of not
     """
     # Extract the path from the request
-    path = request.path
+    path = request.url.path
     
     # Extract needed info
-    cid, auth_header = extract_info(request)
+    cid, auth_header = await extract_info(request)
     
     # Verify that the Correlation Id was provided
     if not cid: 
         # Check if paths are excluded in the config file 
-        if not config.is_path_excluded(request.path):
+        if not config.is_path_excluded(request.url.path):
             return throw_validation_error(cid, 400, "No correlation id header provided in the Request")
     
     # Verify that an Authorization header was provided

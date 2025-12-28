@@ -1,5 +1,5 @@
 
-from flask import jsonify
+from fastapi.responses import JSONResponse
 
 from totoapicontroller.TotoTokenVerifier import TokenVerificationResult
 
@@ -18,9 +18,12 @@ class ValidationResult:
         self.error_message = error_message
         self.token_verification_result = token_verification_result
         
-    def to_flask_response(self): 
-        """ Generates a Flask Response out of this validation result 
+    def to_fastapi_response(self): 
+        """ Generates a FastAPI Response out of this validation result 
         
         This method would be typically used to return a validation errors to the caller
         """
-        return jsonify({"code": self.error_code, "message": self.error_message}), self.error_code
+        return JSONResponse(
+            content={"code": self.error_code, "message": self.error_message},
+            status_code=self.error_code
+        )
