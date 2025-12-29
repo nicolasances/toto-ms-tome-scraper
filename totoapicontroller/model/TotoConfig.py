@@ -47,7 +47,7 @@ class TotoControllerConfig(ABC):
         
         self.logger.log( "INIT", f"Initializing Configuration for environment: {environment.hyperscaler}" )
     
-    async def load(self) -> None:
+    async def load(self) -> "TotoControllerConfig":
         """
         Load all configuration from secrets manager.
         
@@ -77,6 +77,8 @@ class TotoControllerConfig(ABC):
         
         self._is_loaded = True
         self.logger.log("INIT", "Configuration loaded successfully")
+        
+        return self
     
     @property
     def jwt_key(self) -> Optional[str]:

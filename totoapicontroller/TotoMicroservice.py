@@ -143,11 +143,8 @@ class TotoMicroservice:
         # Create secrets manager for loading secrets
         secrets_manager = SecretsManager(init_config.environment)
         
-        # Instantiate the custom configuration
-        custom_config = init_config.custom_config(init_config.environment)
-        
-        # Load configuration from secrets manager
-        await custom_config.load()
+        # Instantiate and load the custom configuration
+        custom_config = await init_config.custom_config(init_config.environment).load()
         
         # Load topic names from secrets if message bus is configured
         topic_identifiers: Optional[List[TopicIdentifier]] = None
@@ -159,13 +156,10 @@ class TotoMicroservice:
             
             topic_identifiers = []
             for topic_config in init_config.message_bus_configuration.topics:
+                
                 resource_id = await secrets_manager.get_secret(topic_config.secret)
-                topic_identifiers.append(
-                    TopicIdentifier(
-                        logical_name=topic_config.logical_name,
-                        resource_identifier=resource_id
-                    )
-                )
+                
+                topic_identifiers.append( TopicIdentifier( logical_name=topic_config.logical_name, resource_identifier=resource_id ) )
         
         # Create the API Controller
         api_controller_props = APIControllerProps(
@@ -182,7 +176,9 @@ class TotoMicroservice:
         
         logger.log("INIT", "API Controller initialized")
         
+        # MESSAGE BUS --------------
         # Create the Message Bus if configured
+        # --------------------------
         message_bus: Optional[TotoMessageBus] = None
         
         if init_config.message_bus_configuration:
@@ -197,10 +193,8 @@ class TotoMicroservice:
             
             # Register message handlers
             if init_config.message_bus_configuration.message_handlers:
-                logger.log(
-                    "INIT",
-                    f"Registering {len(init_config.message_bus_configuration.message_handlers)} message handlers"
-                )
+                
+                logger.log("INIT", f"Registering {len(init_config.message_bus_configuration.message_handlers)} message handlers")
                 
                 for handler_config in init_config.message_bus_configuration.message_handlers:
                     handler_instance = handler_config.handler_class(custom_config)
@@ -208,7 +202,9 @@ class TotoMicroservice:
             
             logger.log("INIT", "Message Bus initialized")
         
+        # API Endpoints --------------
         # Register API endpoints if configured
+        # ----------------------------
         if init_config.api_configuration and init_config.api_configuration.api_endpoints:
             
             logger.log("INIT",f"Registering {len(init_config.api_configuration.api_endpoints)} API endpoints")
