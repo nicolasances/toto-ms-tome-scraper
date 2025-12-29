@@ -125,10 +125,9 @@ class TotoMessageBus:
         hyperscaler = self.config.environment.hyperscaler
         
         if hyperscaler == Hyperscaler.AWS:
-            # Would instantiate AWS SNS implementation
+            from totoapicontroller.evt.impl.SNS import SNSMessageBus
             self.logger.log("INIT", "Initializing AWS SNS message bus")
-            # return SNSImpl(config=self.config.environment.hyperscaler_configuration)
-            return self._create_stub_pub_sub()
+            return SNSMessageBus(config=self.config.environment.hyperscaler_configuration)
         
         elif hyperscaler == Hyperscaler.GCP:
             # Would instantiate GCP Pub/Sub implementation
@@ -137,26 +136,12 @@ class TotoMessageBus:
             return self._create_stub_pub_sub()
         
         elif hyperscaler == Hyperscaler.AZURE:
-            # Would instantiate Azure Service Bus implementation
-            self.logger.log("INIT", "Initializing Azure Service Bus message bus")
-            # return AzureServiceBusImpl(config=self.config.environment.hyperscaler_configuration)
-            return self._create_stub_pub_sub()
+            raise ValueError("Azure Service Bus implementation not yet available")
         
         else:
             raise ValueError(
                 f"Unsupported hyperscaler '{hyperscaler}' for MessageBus implementation"
             )
-    
-    def _create_stub_pub_sub(self) -> IPubSub:
-        """Create a stub Pub/Sub implementation for testing."""
-        class StubPubSub(IPubSub):
-            def publish_message(self, destination: MessageDestination, message: TotoMessage) -> None:
-                pass
-            
-            def convert(self, envelope: Dict) -> TotoMessage:
-                return TotoMessage(type="stub", payload={})
-        
-        return StubPubSub()
     
     def register_message_handler(
         self,
