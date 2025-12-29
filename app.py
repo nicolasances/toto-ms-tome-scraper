@@ -5,6 +5,8 @@ Uses TotoMicroservice framework for:
 - Configuration management
 - API controller with FastAPI
 - Message bus for event handling
+
+Run with: python app.py
 """
 import asyncio
 import os
@@ -22,9 +24,10 @@ from dlg.test.test_refresher import test_refresher
 from dlg.test.test_pubsub import test_pubsub
 from evt.ontopic import on_topic_event
 
-async def main():
-    """Main entry point."""
-    microservice = await TotoMicroservice.init( TotoMicroserviceConfiguration(
+
+def get_microservice_config() -> TotoMicroserviceConfiguration:
+    """Create and return the microservice configuration."""
+    return TotoMicroserviceConfiguration(
         service_name="toto-ms-tome-scraper",
         base_path="/tomescraper",
         environment=TotoEnvironment(
@@ -40,13 +43,14 @@ async def main():
                 APIEndpoint(method="POST", path="/tomescraper/test/pubsub", delegate=test_pubsub),
             ]
         ),
-        message_bus_configuration=None,  # Configure if needed for message handling
-    ))
-    
-    # Get port from environment or use default
+        message_bus_configuration=None,
+    )
+
+
+async def main():
+    """Main entry point for running the microservice."""
+    microservice = await TotoMicroservice.init(get_microservice_config())
     port = int(os.getenv("PORT", "8080"))
-    
-    # Start the service
     await microservice.start(port=port)
 
 

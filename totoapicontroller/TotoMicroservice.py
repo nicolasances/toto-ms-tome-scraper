@@ -23,20 +23,14 @@ from totoapicontroller.api.TotoAPIController import TotoAPIController
 from totoapicontroller.api.APIControllerProps import APIControllerProps
 from totoapicontroller.api.APIControllerOptions import APIControllerOptions
 from totoapicontroller.evt.TotoMessageBus import TotoMessageBus
+from totoapicontroller.model.TotoAPIEndpoint import APIEndpoint
+
 from totoapicontroller.evt.MessageBusConfig import (
     MessageBusConfiguration,
     TopicIdentifier,
 )
 from totoapicontroller.evt.TotoMessageHandler import TotoMessageHandler
 
-
-@dataclass
-class APIEndpoint: 
-    """Configuration for a single API endpoint."""
-    method: str
-    path: str
-    delegate: Callable[[Request], Awaitable[Any]]
-    
 @dataclass
 class APIConfiguration:
     """Configuration for API endpoints."""
@@ -216,18 +210,15 @@ class TotoMicroservice:
         
         # Register API endpoints if configured
         if init_config.api_configuration and init_config.api_configuration.api_endpoints:
+            
             logger.log("INIT",f"Registering {len(init_config.api_configuration.api_endpoints)} API endpoints")
             
             for endpoint_config in init_config.api_configuration.api_endpoints:
-                # Create an instance of the delegate
-                delegate_instance = endpoint_config.delegate(message_bus, custom_config)
+                
+                logger.log("INIT", f"Registering endpoint: {endpoint_config.method} {endpoint_config.path}")
                 
                 # Add the endpoint to the controller
-                api_controller.path(
-                    endpoint_config.method,
-                    endpoint_config.path,
-                    delegate_instance
-                )
+                api_controller.path(endpoint_config)
         
         # Create the singleton instance
         cls._instance = cls(custom_config, api_controller, message_bus)

@@ -10,17 +10,14 @@ Provides functionality to:
 """
 from typing import Callable, Dict, List, Optional, Any
 from enum import Enum
-from fastapi import FastAPI, Request, Response, UploadFile, File
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from functools import wraps
 
 from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
 from totoapicontroller.api.APIControllerProps import APIControllerProps
 from totoapicontroller.api.APIControllerOptions import APIControllerOptions
 from totoapicontroller.model.PathOptions import PathOptions
+from totoapicontroller.model.TotoAPIEndpoint import APIEndpoint
 
 
 class HTTPMethod(str, Enum):
@@ -118,9 +115,7 @@ class TotoAPIController:
     
     def path(
         self,
-        method: HTTPMethod,
-        path: str,
-        handler: Callable,
+        endpoint: APIEndpoint,
         options: Optional[PathOptions] = None
     ) -> None:
         """
@@ -133,16 +128,16 @@ class TotoAPIController:
             options: Optional PathOptions for configuration
         """
         # Apply base path if configured and not ignored
-        corrected_path = self._apply_base_path(path, options)
+        corrected_path = self._apply_base_path(endpoint.path, options)
         
         # Wrap the handler with standard middleware
-        wrapped_handler = self._wrap_handler(handler, options)
+        wrapped_handler = self._wrap_handler(endpoint.delegate, options)
         
         # Register with FastAPI
         self.app.add_api_route(
             corrected_path,
             wrapped_handler,
-            methods=[method.value]
+            methods=[endpoint.method]
         )
     
     def _apply_base_path(
@@ -302,3 +297,26 @@ class TotoAPIController:
             port=port,
             log_level="info" if self.options.debug_mode else "warning"
         )
+    
+    async def listen_async(self, port: Optional[int] = None) -> None:
+        """
+        Asynchronously start the FastAPI app listening for requests.
+        
+        Use this when you're already in an async context (like asyncio.run()).
+        
+        Args:
+            port: The port to listen on (uses configured port if not specified)
+        """
+        import uvicorn
+        
+        port = port or self.options.port
+        self.logger.log("INFO", f"Starting {self.api_name} on port {port}")
+        
+        config = uvicorn.Config(
+            self.app,
+            host="0.0.0.0",
+            port=port,
+            log_level="info" if self.options.debug_mode else "warning"
+        )
+        server = uvicorn.Server(config)
+        await server.serve()
