@@ -1,15 +1,15 @@
 
 from totoapicontroller import TotoLogger
-from totoapicontroller.model.TotoConfig import TotoConfig
+from totoapicontroller.model.TotoConfig import TotoControllerConfig
 
 
 class ExecutionContext: 
     
     logger: TotoLogger
     cid: str 
-    config: TotoConfig
+    config: TotoControllerConfig
     
-    def __init__(self, config: TotoConfig, logger: TotoLogger, cid: str) -> None:
+    def __init__(self, config: TotoControllerConfig, logger: TotoLogger, cid: str) -> None:
         self.config = config
         self.logger = logger
         self.cid = cid

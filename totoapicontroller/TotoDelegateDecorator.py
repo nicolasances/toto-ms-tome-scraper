@@ -3,7 +3,7 @@ from totoapicontroller.TotoLogger import TotoLogger
 
 from totoapicontroller.TotoTokenVerifier import TotoTokenVerifier
 from totoapicontroller.model.ExecutionContext import ExecutionContext
-from totoapicontroller.model.TotoConfig import TotoConfig
+from totoapicontroller.model.TotoConfig import TotoControllerConfig
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ValidationResult import ValidationResult
 
@@ -32,7 +32,7 @@ def toto_delegate(config_class):
                 any: the returned value from the decorated function or a validation error
             """
             
-            config: TotoConfig = config_class()
+            config: TotoControllerConfig = config_class()
             logger = TotoLogger(config.get_api_name())
             
             # Extract info 
@@ -75,7 +75,7 @@ async def extract_info(request: Request) :
 
     return cid, auth_header
 
-async def validate_request(request: Request, config: TotoConfig) -> ValidationResult: 
+async def validate_request(request: Request, config: TotoControllerConfig) -> ValidationResult: 
     """ Validates the core request data that is mandatory for any call
 
     Args:

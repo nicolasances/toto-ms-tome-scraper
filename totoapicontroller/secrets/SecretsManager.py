@@ -26,8 +26,8 @@ class SecretsManager:
         """
         logger = TotoLogger.get_instance()
         
-        if self.hyperscaler == 'gcp':
-            logger.log("INIT", f"Accessing secret {name} for hyperscaler {self.hyperscaler}")
+        if self.environment.hyperscaler == 'gcp':
+            logger.log("INIT", f"Accessing secret {name} for hyperscaler {self.environment.hyperscaler}")
             return self.access_gcp_secret_version(name)
         else:
             return self.access_aws_secret_version(name)

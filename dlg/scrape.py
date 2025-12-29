@@ -1,6 +1,6 @@
 
 from fastapi import Request
-from config.config import Config
+from config.config import TomeScraperConfig
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
@@ -57,7 +57,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
         "blogUrl": blog_url
     }
     
-@toto_delegate(config_class=Config)
+@toto_delegate(config_class=TomeScraperConfig)
 async def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """This API Endpoint extracts the text content of a blog.
     It structures it according to Tome's Knowledge Base structure. 

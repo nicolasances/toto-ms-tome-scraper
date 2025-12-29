@@ -1,52 +1,54 @@
+"""
+Toto Tome Scraper - Microservice for scraping and processing tome content.
+
+Uses TotoMicroservice framework for:
+- Configuration management
+- API controller with FastAPI
+- Message bus for event handling
+"""
+import asyncio
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from config.config import TomeScraperConfig
+from totoapicontroller import (
+    TotoMicroservice,
+    TotoMicroserviceConfiguration,
+    TotoEnvironment,
+    APIConfiguration,
+)
+from totoapicontroller.TotoMicroservice import APIEndpoint, determine_environment
 
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher
 from dlg.test.test_pubsub import test_pubsub
 from evt.ontopic import on_topic_event
 
-app = FastAPI()
+async def main():
+    """Main entry point."""
+    microservice = await TotoMicroservice.init( TotoMicroserviceConfiguration(
+        service_name="toto-ms-tome-scraper",
+        base_path="/tomescraper",
+        environment=TotoEnvironment(
+            hyperscaler=os.getenv("HYPERSCALER", "aws").lower(),
+            hyperscaler_configuration=determine_environment()
+        ),
+        custom_config=TomeScraperConfig,
+        api_configuration=APIConfiguration(
+            api_endpoints=[
+                APIEndpoint(method="POST", path="/tomescraper/blogs", delegate=extract_blog_content),
+                APIEndpoint(method="POST", path="/tomescraper/events/topic", delegate=on_topic_event),
+                APIEndpoint(method="POST", path="/tomescraper/test/refresher", delegate=test_refresher),
+                APIEndpoint(method="POST", path="/tomescraper/test/pubsub", delegate=test_pubsub),
+            ]
+        ),
+        message_bus_configuration=None,  # Configure if needed for message handling
+    ))
+    
+    # Get port from environment or use default
+    port = int(os.getenv("PORT", "8080"))
+    
+    # Start the service
+    await microservice.start(port=port)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-@app.get('/health')
-def health_check():
-    return {"api": "toto-ms-tome-scraper", "running": True}
-
-@app.get('/')
-def smoke_base():
-    return {"api": "toto-ms-tome-scraper", "running": True}
-
-@app.get('/tomescraper/smoke')
-def smoke():
-    return {"api": "toto-ms-tome-scraper", "running": True, "hyperscaler": os.getenv("HYPERSCALER", "not-set"), "env": os.getenv("ENVIRONMENT", "not-set")}
-
-@app.post('/tomescraper/blogs')
-async def post_blog_scraping_request(request): 
-    return await extract_blog_content(request)
-
-# -----------------------------------------------------------------------------------
-# EVENTS
-# -----------------------------------------------------------------------------------
-@app.post('/tomescraper/events/topic')
-async def post_topic_event(request): 
-    return await on_topic_event(request)
-
-# -----------------------------------------------------------------------------------
-# TESTS
-# -----------------------------------------------------------------------------------
-@app.post('/tomescraper/test/refresher')
-async def test_refresher_generation(request): 
-    return await test_refresher(request)
-
-@app.post('/tomescraper/test/pubsub')
-async def test_pubsub_integration(request): 
-    return await test_pubsub(request)
+if __name__ == "__main__":
+    asyncio.run(main())

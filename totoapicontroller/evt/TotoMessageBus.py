@@ -1,0 +1,368 @@
+"""
+TotoMessageBus - Message broker for publish/subscribe patterns.
+
+Provides functionality for:
+- Publishing messages to Pub/Sub topics or Queues
+- Registering message handlers for incoming messages
+- Routing messages to appropriate handlers
+- Supporting both PUSH (webhooks) and PULL (polling) models
+- Integration with multiple hyperscalers (AWS, GCP, Azure)
+"""
+from typing import Dict, List, Optional
+from abc import ABC, abstractmethod
+
+from totoapicontroller.TotoLogger import TotoLogger
+from totoapicontroller.model.TotoEnvironment import TotoEnvironment
+from totoapicontroller.model.Hyperscaler import Hyperscaler
+from totoapicontroller.evt.MessageBusConfig import (
+    MessageBusConfiguration,
+    TopicIdentifier,
+    MessageHandlerRegistrationOptions,
+)
+from totoapicontroller.evt.TotoMessage import TotoMessage
+from totoapicontroller.evt.TotoMessageHandler import (
+    TotoMessageHandler,
+    ProcessingResponse,
+    ProcessingStatus,
+)
+from totoapicontroller.evt.MessageDestination import MessageDestination
+
+
+class MessageHandlerRegistration:
+    """
+    Registration record for a message handler.
+    
+    Attributes:
+        message_handler: The handler instance
+        message_type: The type of messages this handler processes
+    """
+    
+    def __init__(self, message_handler: TotoMessageHandler, message_type: str):
+        self.message_handler = message_handler
+        self.message_type = message_type
+
+
+class IMessageBus(ABC):
+    """Base interface for message bus implementations."""
+    
+    @abstractmethod
+    def publish_message(
+        self,
+        destination: MessageDestination,
+        message: TotoMessage
+    ) -> None:
+        """Publish a message."""
+        pass
+    
+    @abstractmethod
+    def convert(self, envelope: Dict) -> TotoMessage:
+        """Convert a message envelope to TotoMessage."""
+        pass
+
+
+class IPubSub(IMessageBus):
+    """Interface for Pub/Sub message bus implementations."""
+    pass
+
+
+class IQueue(IMessageBus):
+    """Interface for Queue message bus implementations."""
+    
+    @abstractmethod
+    def set_message_handler(self, handler) -> None:
+        """Set the handler for PULL messages."""
+        pass
+
+
+class TotoMessageBus:
+    """
+    Main message bus class for Toto microservices.
+    
+    Provides publish/subscribe functionality with:
+    - Support for multiple hyperscalers (AWS SNS, GCP Pub/Sub, etc.)
+    - Handler registration for different message types
+    - Both PUSH and PULL message delivery mechanisms
+    - Automatic message routing to appropriate handlers
+    """
+    
+    def __init__(self, config: MessageBusConfiguration):
+        """
+        Initialize the TotoMessageBus.
+        
+        Args:
+            config: MessageBusConfiguration with controller, config, environment, and topics
+        """
+        self.config = config
+        self.api_controller = config.controller
+        self.message_handlers: Dict[str, MessageHandlerRegistration] = {}
+        self.message_handler_list: List[MessageHandlerRegistration] = []
+        
+        self.logger = TotoLogger.get_instance()
+        
+        # Instantiate the message bus implementation based on hyperscaler
+        self.message_bus = self._create_message_bus_impl()
+        
+        # Register PULL message handler if applicable
+        if isinstance(self.message_bus, IQueue):
+            self.message_bus.set_message_handler(self.on_pull_message_received)
+        
+        # Register PUSH message endpoint with API controller
+        self.api_controller.register_pub_sub_message_endpoint(
+            "/events",
+            self.on_push_message_received
+        )
+    
+    def _create_message_bus_impl(self) -> IMessageBus:
+        """
+        Create the appropriate message bus implementation based on hyperscaler.
+        
+        Returns:
+            An instance of IMessageBus (IPubSub or IQueue implementation)
+            
+        Raises:
+            ValueError: If the hyperscaler is not supported
+        """
+        hyperscaler = self.config.environment.hyperscaler
+        
+        if hyperscaler == Hyperscaler.AWS:
+            # Would instantiate AWS SNS implementation
+            self.logger.log("INIT", "Initializing AWS SNS message bus")
+            # return SNSImpl(config=self.config.environment.hyperscaler_configuration)
+            return self._create_stub_pub_sub()
+        
+        elif hyperscaler == Hyperscaler.GCP:
+            # Would instantiate GCP Pub/Sub implementation
+            self.logger.log("INIT", "Initializing GCP Pub/Sub message bus")
+            # return GCPPubSubImpl(config=self.config.environment.hyperscaler_configuration)
+            return self._create_stub_pub_sub()
+        
+        elif hyperscaler == Hyperscaler.AZURE:
+            # Would instantiate Azure Service Bus implementation
+            self.logger.log("INIT", "Initializing Azure Service Bus message bus")
+            # return AzureServiceBusImpl(config=self.config.environment.hyperscaler_configuration)
+            return self._create_stub_pub_sub()
+        
+        else:
+            raise ValueError(
+                f"Unsupported hyperscaler '{hyperscaler}' for MessageBus implementation"
+            )
+    
+    def _create_stub_pub_sub(self) -> IPubSub:
+        """Create a stub Pub/Sub implementation for testing."""
+        class StubPubSub(IPubSub):
+            def publish_message(self, destination: MessageDestination, message: TotoMessage) -> None:
+                pass
+            
+            def convert(self, envelope: Dict) -> TotoMessage:
+                return TotoMessage(type="stub", payload={})
+        
+        return StubPubSub()
+    
+    def register_message_handler(
+        self,
+        handler: TotoMessageHandler,
+        options: Optional[MessageHandlerRegistrationOptions] = None
+    ) -> None:
+        """
+        Register a message handler for processing incoming messages.
+        
+        Args:
+            handler: The TotoMessageHandler to register
+            options: Optional MessageHandlerRegistrationOptions
+        """
+        message_type = handler.get_handled_message_type()
+        
+        registration = MessageHandlerRegistration(handler, message_type)
+        
+        # Store by message type for quick lookup
+        self.message_handlers[message_type] = registration
+        
+        # Also store in list to maintain order
+        self.message_handler_list.append(registration)
+        
+        self.logger.log(
+            "INIT",
+            f"Registered message handler for message type: {message_type}"
+        )
+    
+    async def publish_message(
+        self,
+        destination: MessageDestination,
+        message: TotoMessage
+    ) -> None:
+        """
+        Publish a message to the message bus.
+        
+        Args:
+            destination: The MessageDestination (topic or queue)
+            message: The TotoMessage to publish
+            
+        Raises:
+            ValueError: If the destination is invalid for the message bus type
+        """
+        # Validate destination based on message bus type
+        if isinstance(self.message_bus, IPubSub) and not destination.topic:
+            raise ValueError(
+                "MessageDestination.topic is required for Pub/Sub message buses"
+            )
+        
+        if isinstance(self.message_bus, IQueue) and not destination.queue:
+            raise ValueError(
+                "MessageDestination.queue is required for Queue message buses"
+            )
+        
+        # Resolve topic names if needed (map logical names to resource identifiers)
+        resolved_destination = self._resolve_destination(destination)
+        
+        # Publish the message
+        await self.message_bus.publish_message(resolved_destination, message)
+        
+        self.logger.log(
+            "INFO",
+            f"Published message of type '{message.type}' to {resolved_destination}"
+        )
+    
+    def _resolve_destination(self, destination: MessageDestination) -> MessageDestination:
+        """
+        Resolve destination by mapping logical topic names to resource identifiers.
+        
+        Args:
+            destination: The original destination
+            
+        Returns:
+            The resolved destination with resource identifiers
+        """
+        if destination.topic and isinstance(self.message_bus, IPubSub):
+            # Look up the resource identifier for this logical topic name
+            topic_identifier = self._find_topic_identifier(destination.topic)
+            
+            if not topic_identifier:
+                raise ValueError(
+                    f"Topic '{destination.topic}' not found in configuration. "
+                    f"This is a configuration error in your application."
+                )
+            
+            return MessageDestination(topic=topic_identifier.resource_identifier)
+        
+        return destination
+    
+    def _find_topic_identifier(self, logical_name: str) -> Optional[TopicIdentifier]:
+        """
+        Find a topic identifier by logical name.
+        
+        Args:
+            logical_name: The logical topic name
+            
+        Returns:
+            The TopicIdentifier if found, None otherwise
+        """
+        if not self.config.topics:
+            return None
+        
+        for topic in self.config.topics:
+            if topic.logical_name == logical_name:
+                return topic
+        
+        return None
+    
+    async def on_pull_message_received(self, envelope: Dict) -> ProcessingResponse:
+        """
+        Callback for PULL queue implementations when a message is received.
+        
+        Routes messages to the appropriate handler based on message type.
+        
+        Args:
+            envelope: The raw message envelope from the queue
+            
+        Returns:
+            A ProcessingResponse with the result of handling
+        """
+        if not isinstance(self.message_bus, IQueue):
+            return ProcessingResponse(
+                status=ProcessingStatus.IGNORED,
+                response_payload="Message bus is not a Queue implementation"
+            )
+        
+        try:
+            # Convert the envelope to a TotoMessage
+            message = self.message_bus.convert(envelope)
+            
+            # Find the handler for this message type
+            handler = self._find_handler("pull", message.type)
+            
+            if not handler:
+                return ProcessingResponse(
+                    status=ProcessingStatus.IGNORED,
+                    response_payload=f"No handler found for message type '{message.type}'"
+                )
+            
+            # Process the message
+            return await handler.process_message(message)
+        
+        except Exception as e:
+            self.logger.log("ERROR", f"Error processing PULL message: {str(e)}")
+            return ProcessingResponse(
+                status=ProcessingStatus.FAILED,
+                error=str(e)
+            )
+    
+    async def on_push_message_received(self, envelope: Dict) -> ProcessingResponse:
+        """
+        Callback for PUSH Pub/Sub implementations when a message is received via webhook.
+        
+        Routes messages to the appropriate handler based on message type.
+        
+        Args:
+            envelope: The webhook payload from the Pub/Sub provider
+            
+        Returns:
+            A ProcessingResponse with the result of handling
+        """
+        if not isinstance(self.message_bus, IPubSub):
+            return ProcessingResponse(
+                status=ProcessingStatus.IGNORED,
+                response_payload="Message bus is not a Pub/Sub implementation"
+            )
+        
+        try:
+            # Convert the envelope to a TotoMessage
+            message = self.message_bus.convert(envelope)
+            
+            # Find the handler for this message type
+            handler = self._find_handler("push", message.type)
+            
+            if not handler:
+                return ProcessingResponse(
+                    status=ProcessingStatus.IGNORED,
+                    response_payload=f"No handler found for message type '{message.type}'"
+                )
+            
+            # Process the message
+            return await handler.process_message(message)
+        
+        except Exception as e:
+            self.logger.log("ERROR", f"Error processing PUSH message: {str(e)}")
+            return ProcessingResponse(
+                status=ProcessingStatus.FAILED,
+                error=str(e)
+            )
+    
+    def _find_handler(
+        self,
+        delivery_model: str,
+        message_type: str
+    ) -> Optional[TotoMessageHandler]:
+        """
+        Find a handler for the given message type.
+        
+        Args:
+            delivery_model: The delivery model ('push' or 'pull')
+            message_type: The message type to find a handler for
+            
+        Returns:
+            The handler if found, None otherwise
+        """
+        if message_type in self.message_handlers:
+            return self.message_handlers[message_type].message_handler
+        
+        return None

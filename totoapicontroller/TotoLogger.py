@@ -1,19 +1,52 @@
+"""
+TotoLogger - Singleton logger for Toto microservices.
+"""
 from datetime import datetime
+from typing import Optional
 
-from config.config import singleton
 
-@singleton
-class TotoLogger: 
+class TotoLogger:
+    """
+    Singleton logger for Toto microservices.
     
-    def __init__(self, api_name = "") -> None:
+    Usage:
+        logger = TotoLogger.get_instance("my-service")
+        logger.log("INIT", "Service started")
+    """
+    
+    _instance: Optional['TotoLogger'] = None
+    
+    def __init__(self, api_name: str = "") -> None:
+        """
+        Initialize the logger.
+        
+        Args:
+            api_name: The name of the API/service for logging
+        """
         self.api_name = api_name
     
-    def log(self, cid: str, msg: str) -> None: 
-        """ Logs in console out a message 
-
+    @classmethod
+    def get_instance(cls, api_name: str = "") -> 'TotoLogger':
+        """
+        Get or create the singleton instance.
+        
         Args:
-            cid (str): the Correlation Id
-            msg (str): the message to be logged
+            api_name: The name of the API/service (used on first initialization)
+            
+        Returns:
+            The singleton TotoLogger instance
+        """
+        if cls._instance is None:
+            cls._instance = cls(api_name or "unknown")
+        return cls._instance
+    
+    def log(self, correlation_id: str, msg: str) -> None:
+        """
+        Log a message to the console.
+        
+        Args:
+            correlation_id: The correlation ID (request ID, operation ID, etc.)
+            msg: The message to log
         """
         # Get the current timestamp
         current_timestamp = datetime.now()
@@ -22,4 +55,4 @@ class TotoLogger:
         formatted_timestamp = current_timestamp.strftime('%Y.%m.%d %H:%M:%S,%f')[:-3]
         
         # Log
-        print(f"[{self.api_name}] - [{cid}] - [{formatted_timestamp}] - {msg}")
+        print(f"[{self.api_name}] - [{correlation_id}] - [{formatted_timestamp}] - {msg}")
