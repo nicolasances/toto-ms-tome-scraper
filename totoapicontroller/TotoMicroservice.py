@@ -205,7 +205,7 @@ class TotoMicroservice:
             
             logger.log("INIT", "Message Bus initialized")
         
-        # API Endpoints --------------
+        # API ENDPOINTS --------------
         # Register API endpoints if configured
         # ----------------------------
         if init_config.api_configuration and init_config.api_configuration.api_endpoints:
@@ -241,9 +241,8 @@ class TotoMicroservice:
             RuntimeError: If init() has not been called yet
         """
         if not cls._instance:
-            raise RuntimeError(
-                "TotoMicroservice not initialized. Call init() first."
-            )
+            raise RuntimeError( "TotoMicroservice not initialized. Call init() first." )
+        
         return cls._instance
     
     async def start(self, port: Optional[int] = None) -> None:

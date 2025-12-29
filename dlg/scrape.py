@@ -14,12 +14,12 @@ from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
 from totopubsub.model import Context, TotoMessageData
 from totopubsub.pubsub import PubSubFactory
 
-def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
+async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
     
-    html_content = scrape_blog(blog_url)
+    html_content = await scrape_blog(blog_url)
     
     # 2. Extract all the text
     blog_content: BlogContent = CraftBlobTextExtractor(html_content, topic_name).get_content()
@@ -57,7 +57,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
         "blogUrl": blog_url
     }
     
-@toto_delegate(config_class=TomeScraperConfig)
+@toto_delegate
 async def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """This API Endpoint extracts the text content of a blog.
     It structures it according to Tome's Knowledge Base structure. 
@@ -97,5 +97,5 @@ async def extract_blog_content(request: Request, user_context: UserContext, exec
     if topic_id is None:
         return TotoValidationError("The topicId is mandatory").__dict__
     
-    return scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
+    return await scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
     

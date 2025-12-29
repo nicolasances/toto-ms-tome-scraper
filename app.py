@@ -37,10 +37,10 @@ def get_microservice_config() -> TotoMicroserviceConfiguration:
         custom_config=TomeScraperConfig,
         api_configuration=APIConfiguration(
             api_endpoints=[
-                APIEndpoint(method="POST", path="/tomescraper/blogs", delegate=extract_blog_content),
-                APIEndpoint(method="POST", path="/tomescraper/events/topic", delegate=on_topic_event),
-                APIEndpoint(method="POST", path="/tomescraper/test/refresher", delegate=test_refresher),
-                APIEndpoint(method="POST", path="/tomescraper/test/pubsub", delegate=test_pubsub),
+                APIEndpoint(method="POST", path="/blogs", delegate=extract_blog_content),
+                APIEndpoint(method="POST", path="/events/topic", delegate=on_topic_event),
+                APIEndpoint(method="POST", path="/test/refresher", delegate=test_refresher),
+                APIEndpoint(method="POST", path="/test/pubsub", delegate=test_pubsub),
             ]
         ),
         message_bus_configuration=None,

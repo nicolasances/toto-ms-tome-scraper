@@ -7,7 +7,7 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-@toto_delegate(config_class=TomeScraperConfig)
+@toto_delegate
 async def test_refresher(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     
     config: TomeScraperConfig = exec_context.config

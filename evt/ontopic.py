@@ -17,7 +17,7 @@ class TopicEvent(Enum):
     TOPIC_REFRESHED = "topicRefreshed"
     TOPIC_DELETED = "topicDeleted"
 
-@toto_delegate(config_class=TomeScraperConfig)
+@toto_delegate
 async def on_topic_event(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """This API Endpoint reacts to the creation of a topic, received on pubsub on the topic 'tometopics' (event 'topicCreated').
     
