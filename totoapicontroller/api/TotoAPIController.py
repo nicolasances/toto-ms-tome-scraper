@@ -128,7 +128,7 @@ class TotoAPIController:
             endpoint.delegate,
             methods=[endpoint.method]
         )
-    
+        
     def _apply_base_path(self, path: str, options: Optional[PathOptions] = None) -> str:
         """
         Apply base path to the given path if configured.
@@ -191,7 +191,7 @@ class TotoAPIController:
             path: The endpoint path (typically '/events')
             handler: Handler function to process messages
         """
-        self.path(HTTPMethod.POST, path, handler, PathOptions(no_auth=True))
+        self.path(endpoint=APIEndpoint(HTTPMethod.POST, path, handler), options=PathOptions(no_auth=True))
     
     async def init(self) -> None:
         """

@@ -107,10 +107,7 @@ class TotoMessageBus:
             self.message_bus.set_message_handler(self.on_pull_message_received)
         
         # Register PUSH message endpoint with API controller
-        self.api_controller.register_pub_sub_message_endpoint(
-            "/events",
-            self.on_push_message_received
-        )
+        self.api_controller.register_pub_sub_message_endpoint( "/events", self.on_push_message_received )
     
     def _create_message_bus_impl(self) -> IMessageBus:
         """
@@ -124,18 +121,18 @@ class TotoMessageBus:
         """
         hyperscaler = self.config.environment.hyperscaler
         
-        if hyperscaler == Hyperscaler.AWS:
+        if hyperscaler == "aws":
             from totoapicontroller.evt.impl.SNS import SNSMessageBus
             self.logger.log("INIT", "Initializing AWS SNS message bus")
             return SNSMessageBus(config=self.config.environment.hyperscaler_configuration)
         
-        elif hyperscaler == Hyperscaler.GCP:
+        elif hyperscaler == "gcp":
             # Would instantiate GCP Pub/Sub implementation
             self.logger.log("INIT", "Initializing GCP Pub/Sub message bus")
             # return GCPPubSubImpl(config=self.config.environment.hyperscaler_configuration)
             return self._create_stub_pub_sub()
         
-        elif hyperscaler == Hyperscaler.AZURE:
+        elif hyperscaler == "azure":
             raise ValueError("Azure Service Bus implementation not yet available")
         
         else:

@@ -17,7 +17,7 @@ from totoapicontroller import (
     TotoEnvironment,
     APIConfiguration,
 )
-from totoapicontroller.TotoMicroservice import APIEndpoint, determine_environment
+from totoapicontroller.TotoMicroservice import APIEndpoint, determine_environment, MessageBusTopicConfig, MessageBusConfig
 
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher
@@ -43,7 +43,11 @@ def get_microservice_config() -> TotoMicroserviceConfiguration:
                 APIEndpoint(method="POST", path="/test/pubsub", delegate=test_pubsub),
             ]
         ),
-        message_bus_configuration=None,
+        message_bus_configuration=MessageBusConfig(
+            topics=[
+                MessageBusTopicConfig(logical_name="tometopics", secret="tome_topics_topic_name")
+            ]
+        ),
     )
 
 

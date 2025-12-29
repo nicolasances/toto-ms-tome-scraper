@@ -1,7 +1,8 @@
 
 from fastapi import Request
-from config.config import TomeScraperConfig
+from datetime import datetime
 
+from totoapicontroller.evt import TotoMessage
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
@@ -11,8 +12,6 @@ from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
-from totopubsub.model import Context, TotoMessageData
-from totopubsub.pubsub import PubSubFactory
 
 async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
@@ -28,17 +27,11 @@ async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, u
     kb_structure: StorageBlogStructure = KnowledgeBaseStorageFactory.get_storage(exec_context).store_blog_content(blog_content)
     
     # 5. Event on PubSub
-    pubsub_context = Context(
-        correlation_id=exec_context.cid,
-        region=exec_context.config.region,
-        hyperscaler=exec_context.config.hyperscaler
-    )
-    
-    event_publisher = PubSubFactory.create_pubsub(pubsub_context)
-    
-    msg = TotoMessageData(
+    msg = TotoMessage(
+        timestamp=datetime.now().strftime('%Y%m%d%H%M%S'),
+        cid=exec_context.cid,
         id=kb_structure.topic_code,
-        event_name="topicScraped",
+        type="topicScraped",
         msg=f"The content of topic {kb_structure.topic_code} has been saved in the Knowledge Base",
         data={
             "topicId": topic_id,
@@ -48,8 +41,6 @@ async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, u
             "numSections": len(blog_content.sections)
         }
     )
-    
-    event_publisher.publish_message(topic_name=exec_context.config.topics['tometopics'], message=msg)
     
     # Return the blog content, the topic id and the blog url
     return {

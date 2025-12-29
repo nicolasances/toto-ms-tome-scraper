@@ -20,7 +20,6 @@ class TopicIdentifier:
     logical_name: str
     resource_identifier: str
 
-
 @dataclass
 class MessageHandlerRegistrationOptions:
     """

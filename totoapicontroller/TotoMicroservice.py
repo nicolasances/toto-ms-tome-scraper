@@ -50,7 +50,7 @@ class MessageBusTopicConfig:
 
 
 @dataclass
-class MessageBusConfiguration:
+class MessageBusConfig:
     """Configuration for the message bus."""
     topics: Optional[List[MessageBusTopicConfig]] = field(default_factory=list)
     message_handlers: Optional[List[MessageBusHandlerConfig]] = field(default_factory=list)
@@ -159,7 +159,7 @@ class TotoMicroservice:
             topic_identifiers = []
             for topic_config in init_config.message_bus_configuration.topics:
                 
-                resource_id = await secrets_manager.get_secret(topic_config.secret)
+                resource_id = secrets_manager.get_secret(topic_config.secret)
                 
                 topic_identifiers.append( TopicIdentifier( logical_name=topic_config.logical_name, resource_identifier=resource_id ) )
         
