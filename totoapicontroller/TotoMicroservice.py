@@ -219,10 +219,7 @@ class TotoMicroservice:
         # Create the singleton instance
         cls._instance = cls(custom_config, api_controller, message_bus)
         
-        logger.log(
-            "INIT",
-            f"TotoMicroservice '{init_config.service_name}' initialized successfully"
-        )
+        logger.log("INIT", f"TotoMicroservice '{init_config.service_name}' initialized successfully" )
         
         return cls._instance
     

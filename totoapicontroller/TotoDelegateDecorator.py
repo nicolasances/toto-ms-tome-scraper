@@ -34,6 +34,7 @@ def toto_delegate(dlg):
         
         config: TotoControllerConfig = microservice.config
         logger = TotoLogger.get_instance()
+        message_bus = microservice.message_bus
         
         # Extract info 
         cid, _ = await extract_info(request)
@@ -51,7 +52,12 @@ def toto_delegate(dlg):
         user_context = UserContext(validation_result.token_verification_result.user_email)
         
         # Create an execution context object
-        execution_context = ExecutionContext(config, logger, cid)
+        execution_context = ExecutionContext(
+            logger=logger,
+            cid=cid,
+            config=config,
+            message_bus=message_bus
+        )
 
         # Call the delegate
         return await dlg(request, user_context, execution_context)

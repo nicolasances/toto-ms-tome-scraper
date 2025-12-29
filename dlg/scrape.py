@@ -2,6 +2,7 @@
 from fastapi import Request
 from datetime import datetime
 
+from totoapicontroller import MessageDestination
 from totoapicontroller.evt import TotoMessage
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
@@ -14,6 +15,8 @@ from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
 
 async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
+    
+    print(exec_context)
     
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
@@ -40,6 +43,11 @@ async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, u
             "sections": kb_structure.section_codes,
             "numSections": len(blog_content.sections)
         }
+    )
+    
+    await exec_context.message_bus.publish_message(
+        destination=MessageDestination(topic="tometopics"), 
+        message=msg
     )
     
     # Return the blog content, the topic id and the blog url

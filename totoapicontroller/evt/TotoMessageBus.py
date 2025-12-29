@@ -46,7 +46,7 @@ class IMessageBus(ABC):
     """Base interface for message bus implementations."""
     
     @abstractmethod
-    def publish_message(
+    async def publish_message(
         self,
         destination: MessageDestination,
         message: TotoMessage
@@ -167,11 +167,7 @@ class TotoMessageBus:
             f"Registered message handler for message type: {message_type}"
         )
     
-    async def publish_message(
-        self,
-        destination: MessageDestination,
-        message: TotoMessage
-    ) -> None:
+    async def publish_message( self, destination: MessageDestination, message: TotoMessage ) -> None:
         """
         Publish a message to the message bus.
         
@@ -199,10 +195,7 @@ class TotoMessageBus:
         # Publish the message
         await self.message_bus.publish_message(resolved_destination, message)
         
-        self.logger.log(
-            "INFO",
-            f"Published message of type '{message.type}' to {resolved_destination}"
-        )
+        self.logger.log( "INFO", f"Published message of type '{message.type}' to {resolved_destination}" )
     
     def _resolve_destination(self, destination: MessageDestination) -> MessageDestination:
         """

@@ -37,7 +37,7 @@ class SNSMessageBus(IPubSub):
         
         self.logger.log("INIT", f"SNS Message Bus initialized in region {config.region}")
     
-    def publish_message(
+    async def publish_message(
         self,
         destination: MessageDestination,
         message: TotoMessage
