@@ -95,7 +95,7 @@ class TotoMicroservice:
     _instance_promise: Optional[asyncio.Task] = None
     _lock = asyncio.Lock()
     
-    def __init__(self, config: TotoControllerConfig, api_controller: TotoAPIController, message_bus: Optional[TotoMessageBus] = None):
+    def __init__(self, microservice_configuration: TotoMicroserviceConfiguration, config: TotoControllerConfig, api_controller: TotoAPIController, message_bus: Optional[TotoMessageBus] = None):
         """
         Private constructor. Use init() class method instead.
         
@@ -108,6 +108,7 @@ class TotoMicroservice:
         self.api_controller = api_controller
         self.message_bus = message_bus
         self.logger = TotoLogger.get_instance()
+        self.microservice_configuration = microservice_configuration
     
     @classmethod
     async def init( cls, init_config: TotoMicroserviceConfiguration ) -> 'TotoMicroservice':
@@ -217,7 +218,7 @@ class TotoMicroservice:
                 api_controller.path(endpoint_config)
         
         # Create the singleton instance
-        cls._instance = cls(custom_config, api_controller, message_bus)
+        cls._instance = cls(init_config, custom_config, api_controller, message_bus)
         
         logger.log("INIT", f"TotoMicroservice '{init_config.service_name}' initialized successfully" )
         

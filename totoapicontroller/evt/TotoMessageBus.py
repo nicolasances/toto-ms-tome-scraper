@@ -127,10 +127,9 @@ class TotoMessageBus:
             return SNSMessageBus(config=self.config.environment.hyperscaler_configuration)
         
         elif hyperscaler == "gcp":
-            # Would instantiate GCP Pub/Sub implementation
+            from totoapicontroller.evt.impl.GCPPubSub import GCPPubSubMessageBus
             self.logger.log("INIT", "Initializing GCP Pub/Sub message bus")
-            # return GCPPubSubImpl(config=self.config.environment.hyperscaler_configuration)
-            return self._create_stub_pub_sub()
+            return GCPPubSubMessageBus(config=self.config.environment.hyperscaler_configuration)
         
         elif hyperscaler == "azure":
             raise ValueError("Azure Service Bus implementation not yet available")

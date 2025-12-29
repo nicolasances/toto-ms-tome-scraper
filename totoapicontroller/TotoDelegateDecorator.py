@@ -56,7 +56,8 @@ def toto_delegate(dlg):
             logger=logger,
             cid=cid,
             config=config,
-            message_bus=message_bus
+            message_bus=message_bus, 
+            environment=microservice.microservice_configuration.environment
         )
 
         # Call the delegate

@@ -16,8 +16,6 @@ from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
 
 async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
-    print(exec_context)
-    
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
     
