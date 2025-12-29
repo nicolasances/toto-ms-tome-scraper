@@ -140,7 +140,9 @@ class TotoMicroservice:
         
         logger.log( "INIT", f"Initializing TotoMicroservice: {init_config.service_name}" )
         
+        # LOADING SECRETS -----------
         # Create secrets manager for loading secrets
+        # --------------------------- 
         secrets_manager = SecretsManager(init_config.environment)
         
         # Instantiate and load the custom configuration
