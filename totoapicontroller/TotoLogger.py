@@ -1,8 +1,11 @@
 from datetime import datetime
 
+from config.config import singleton
+
+@singleton
 class TotoLogger: 
     
-    def __init__(self, api_name) -> None:
+    def __init__(self, api_name = "") -> None:
         self.api_name = api_name
     
     def log(self, cid: str, msg: str) -> None: 
