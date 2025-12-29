@@ -242,29 +242,9 @@ class TotoAPIController:
         # Register with Toto API Registry
         self.logger.log("INIT", f"API {self.api_name} initialization complete")
     
-    def listen(self, port: Optional[int] = None) -> None:
+    async def listen(self, port: Optional[int] = None) -> None:
         """
         Start the FastAPI app listening for requests.
-        
-        Args:
-            port: The port to listen on (uses configured port if not specified)
-        """
-        import uvicorn
-        
-        port = port or self.options.port
-        self.logger.log("INFO", f"Starting {self.api_name} on port {port}")
-        uvicorn.run(
-            self.app,
-            host="0.0.0.0",
-            port=port,
-            log_level="info" if self.options.debug_mode else "warning"
-        )
-    
-    async def listen_async(self, port: Optional[int] = None) -> None:
-        """
-        Asynchronously start the FastAPI app listening for requests.
-        
-        Use this when you're already in an async context (like asyncio.run()).
         
         Args:
             port: The port to listen on (uses configured port if not specified)

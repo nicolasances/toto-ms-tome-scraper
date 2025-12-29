@@ -259,7 +259,7 @@ class TotoMicroservice:
         await self.api_controller.init()
         
         # Start listening for requests
-        await self.api_controller.listen_async(port)
+        await self.api_controller.listen(port)
 
 def determine_environment() -> TotoEnvironment:
     """Determine the environment from environment variables or defaults."""
