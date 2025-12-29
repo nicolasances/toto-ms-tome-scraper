@@ -8,7 +8,6 @@ Provides functionality for:
 - Supporting both PUSH (webhooks) and PULL (polling) models
 - Integration with multiple hyperscalers (AWS, GCP, Azure)
 """
-import asyncio
 from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
 
@@ -85,10 +84,8 @@ class TotoMessageBus:
     - Both PUSH and PULL message delivery mechanisms
     - Automatic message routing to appropriate handlers
     """
-    _instance : Optional['TotoMessageBus'] = None
-    _lock = asyncio.Lock()
     
-    async def initialize(self, config: MessageBusConfiguration) -> "TotoMessageBus":
+    def __init__(self, config: MessageBusConfiguration):
         """
         Initialize the TotoMessageBus.
         
@@ -111,25 +108,7 @@ class TotoMessageBus:
         
         # Register PUSH message endpoint with API controller
         self.api_controller.register_pub_sub_message_endpoint( "/events", self.on_push_message_received )
-        
-        self.initialized = True
-        
-        return self
     
-    @classmethod 
-    async def get_instance(cls) -> "TotoMessageBus": 
-        """
-        Get the singleton instance of TotoMessageBus.
-        
-        Returns:
-            The singleton TotoMessageBus instance
-        """
-        async with cls._lock:
-            if cls._instance is None:
-                cls._instance = cls()
-            
-        return cls._instance
-        
     def _create_message_bus_impl(self) -> IMessageBus:
         """
         Create the appropriate message bus implementation based on hyperscaler.
@@ -161,7 +140,11 @@ class TotoMessageBus:
                 f"Unsupported hyperscaler '{hyperscaler}' for MessageBus implementation"
             )
     
-    def register_message_handler( self, handler: TotoMessageHandler, options: Optional[MessageHandlerRegistrationOptions] = None ) -> None:
+    def register_message_handler(
+        self,
+        handler: TotoMessageHandler,
+        options: Optional[MessageHandlerRegistrationOptions] = None
+    ) -> None:
         """
         Register a message handler for processing incoming messages.
         
@@ -169,9 +152,6 @@ class TotoMessageBus:
             handler: The TotoMessageHandler to register
             options: Optional MessageHandlerRegistrationOptions
         """
-        if not self.initialized: 
-            raise RuntimeError("TotoMessageBus must be initialized before registering handlers")
-        
         message_type = handler.get_handled_message_type()
         
         registration = MessageHandlerRegistration(handler, message_type)
@@ -187,7 +167,11 @@ class TotoMessageBus:
             f"Registered message handler for message type: {message_type}"
         )
     
-    async def publish_message( self, destination: MessageDestination, message: TotoMessage ) -> None:
+    async def publish_message(
+        self,
+        destination: MessageDestination,
+        message: TotoMessage
+    ) -> None:
         """
         Publish a message to the message bus.
         
@@ -198,9 +182,6 @@ class TotoMessageBus:
         Raises:
             ValueError: If the destination is invalid for the message bus type
         """
-        if not self.initialized:
-            raise RuntimeError("TotoMessageBus must be initialized before publishing messages")
-        
         # Validate destination based on message bus type
         if isinstance(self.message_bus, IPubSub) and not destination.topic:
             raise ValueError(
@@ -278,9 +259,6 @@ class TotoMessageBus:
         Returns:
             A ProcessingResponse with the result of handling
         """
-        if not self.initialized: 
-            raise RuntimeError("TotoMessageBus must be initialized before processing messages")
-        
         if not isinstance(self.message_bus, IQueue):
             return ProcessingResponse(
                 status=ProcessingStatus.IGNORED,
@@ -322,9 +300,6 @@ class TotoMessageBus:
         Returns:
             A ProcessingResponse with the result of handling
         """
-        if not self.initialized: 
-            raise RuntimeError("TotoMessageBus must be initialized before processing messages")
-        
         if not isinstance(self.message_bus, IPubSub):
             return ProcessingResponse(
                 status=ProcessingStatus.IGNORED,
@@ -354,7 +329,11 @@ class TotoMessageBus:
                 error=str(e)
             )
     
-    def _find_handler( self, delivery_model: str, message_type: str ) -> Optional[TotoMessageHandler]:
+    def _find_handler(
+        self,
+        delivery_model: str,
+        message_type: str
+    ) -> Optional[TotoMessageHandler]:
         """
         Find a handler for the given message type.
         

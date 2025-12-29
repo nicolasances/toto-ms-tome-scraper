@@ -189,8 +189,7 @@ class TotoMicroservice:
                 topics=topic_identifiers or []
             )
             
-            message_bus = await TotoMessageBus.get_instance()
-            await message_bus.initialize(message_bus_config)
+            message_bus = TotoMessageBus(message_bus_config)
             
             # Register message handlers
             if init_config.message_bus_configuration.message_handlers:
