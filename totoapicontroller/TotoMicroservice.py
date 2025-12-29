@@ -95,12 +95,7 @@ class TotoMicroservice:
     _instance_promise: Optional[asyncio.Task] = None
     _lock = asyncio.Lock()
     
-    def __init__(
-        self,
-        config: TotoControllerConfig,
-        api_controller: TotoAPIController,
-        message_bus: Optional[TotoMessageBus] = None
-    ):
+    def __init__(self, config: TotoControllerConfig, api_controller: TotoAPIController, message_bus: Optional[TotoMessageBus] = None):
         """
         Private constructor. Use init() class method instead.
         
@@ -132,8 +127,9 @@ class TotoMicroservice:
         Returns:
             The singleton TotoMicroservice instance
         """
-        if cls._instance:
-            return cls._instance
+        async with cls._lock:
+            if cls._instance:
+                return cls._instance
         
         # Initialize the Logger
         logger = TotoLogger.get_instance(init_config.service_name)
@@ -185,6 +181,7 @@ class TotoMicroservice:
         message_bus: Optional[TotoMessageBus] = None
         
         if init_config.message_bus_configuration:
+            
             message_bus_config = MessageBusConfiguration(
                 controller=api_controller,
                 custom_config=custom_config,
@@ -192,7 +189,8 @@ class TotoMicroservice:
                 topics=topic_identifiers or []
             )
             
-            message_bus = TotoMessageBus(message_bus_config)
+            message_bus = await TotoMessageBus.get_instance()
+            await message_bus.initialize(message_bus_config)
             
             # Register message handlers
             if init_config.message_bus_configuration.message_handlers:
