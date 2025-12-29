@@ -8,6 +8,7 @@ Provides functionality for:
 - API configuration and properties
 - Validating excluded paths
 """
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 from totoapicontroller.TotoLogger import TotoLogger
@@ -58,17 +59,21 @@ class TotoControllerConfig(ABC):
         
         self.logger.log("INIT", "Loading configuration secrets...")
         
-        # Load common secrets
-        self._jwt_key = self.secrets_manager.get_secret("jwt-signing-key")
-        self._jwt_expected_audience = self.secrets_manager.get_secret("toto-expected-audience")
-        self._toto_registry_endpoint = self.secrets_manager.get_secret("toto-registry-endpoint")
+        # Load common secrets in parallel
+        self._jwt_key, self._jwt_expected_audience, self._toto_registry_endpoint = await asyncio.gather(
+            asyncio.to_thread(self.secrets_manager.get_secret, "jwt-signing-key"),
+            asyncio.to_thread(self.secrets_manager.get_secret, "toto-expected-audience"),
+            asyncio.to_thread(self.secrets_manager.get_secret, "toto-registry-endpoint"),
+        )
         
-        # Load Mongo secrets if needed
+        # Load Mongo secrets in parallel if needed
         mongo_secret_names = self.get_mongo_secret_names()
         if mongo_secret_names:
-            self._mongo_host = self.secrets_manager.get_secret("mongo-host")
-            self._mongo_user = self.secrets_manager.get_secret(mongo_secret_names["user_secret_name"])
-            self._mongo_pwd = self.secrets_manager.get_secret(mongo_secret_names["pwd_secret_name"])
+            self._mongo_host, self._mongo_user, self._mongo_pwd = await asyncio.gather(
+                asyncio.to_thread(self.secrets_manager.get_secret, "mongo-host"),
+                asyncio.to_thread(self.secrets_manager.get_secret, mongo_secret_names["user_secret_name"]),
+                asyncio.to_thread(self.secrets_manager.get_secret, mongo_secret_names["pwd_secret_name"]),
+            )
         
         self._is_loaded = True
         self.logger.log("INIT", "Configuration loaded successfully")
