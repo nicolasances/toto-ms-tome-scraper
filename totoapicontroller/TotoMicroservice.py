@@ -161,18 +161,19 @@ class TotoMicroservice:
                 
                 topic_identifiers.append( TopicIdentifier( logical_name=topic_config.logical_name, resource_identifier=resource_id ) )
         
+        # API CONTROLLER -----------
         # Create the API Controller
-        api_controller_props = APIControllerProps(
-            api_name=init_config.service_name,
-            environment=init_config.environment,
-            config=custom_config
+        # --------------------------
+        api_controller = TotoAPIController(
+            APIControllerProps(
+                api_name=init_config.service_name,
+                environment=init_config.environment,
+                config=custom_config
+            ), 
+            APIControllerOptions(
+                base_path=init_config.base_path or ""
+            )
         )
-        
-        api_controller_options = APIControllerOptions(
-            base_path=init_config.base_path or ""
-        )
-        
-        api_controller = TotoAPIController(api_controller_props, api_controller_options)
         
         logger.log("INIT", "API Controller initialized")
         
