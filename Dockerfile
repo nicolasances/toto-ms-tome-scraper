@@ -15,11 +15,10 @@ RUN playwright install --with-deps
 # Copy the application code into the container
 COPY . .
 
-# Expose the port that Gunicorn will listen on
+# Expose the port that the application will listen on
 EXPOSE 8080
 
 ENV PYTHONUNBUFFERED=TRUE
 
-# Command to run the application using Uvicorn
-CMD uvicorn app:app --host 0.0.0.0 --port 8080 --workers 2 --timeout-keep-alive 3600
-# CMD python scrape.py
+# Command to run the application
+CMD python app.py

@@ -43,11 +43,7 @@ class TotoAPIController:
     - Full async/await support
     """
     
-    def __init__(
-        self,
-        props: APIControllerProps,
-        options: Optional[APIControllerOptions] = None
-    ):
+    def __init__( self, props: APIControllerProps, options: Optional[APIControllerOptions] = None ):
         """
         Initialize the TotoAPIController.
         
