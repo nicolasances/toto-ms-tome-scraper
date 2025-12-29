@@ -43,7 +43,7 @@ class TotoAPIController:
     - Full async/await support
     """
     
-    def __init__( self, props: APIControllerProps, options: Optional[APIControllerOptions] = None ):
+    def __init__(self, props: APIControllerProps, options: Optional[APIControllerOptions] = None):
         """
         Initialize the TotoAPIController.
         
@@ -60,7 +60,7 @@ class TotoAPIController:
         
         # Log configuration if debug mode is enabled
         if self.options.debug_mode:
-            self.logger.log( "INIT", f"[TotoAPIController Debug] - Config Properties: {self._get_config_props()}")
+            self.logger.log("INIT", f"[TotoAPIController Debug] - Config Properties: {self._get_config_props()}")
         
         # Initialize FastAPI middleware
         self._setup_middleware()
@@ -109,11 +109,7 @@ class TotoAPIController:
         # This would be implemented based on TotoConfig interface
         return {}
     
-    def path(
-        self,
-        endpoint: APIEndpoint,
-        options: Optional[PathOptions] = None
-    ) -> None:
+    def path(self, endpoint: APIEndpoint, options: Optional[PathOptions] = None) -> None:
         """
         Register an API path handler.
         
@@ -136,11 +132,7 @@ class TotoAPIController:
             methods=[endpoint.method]
         )
     
-    def _apply_base_path(
-        self,
-        path: str,
-        options: Optional[PathOptions] = None
-    ) -> str:
+    def _apply_base_path(self, path: str, options: Optional[PathOptions] = None) -> str:
         """
         Apply base path to the given path if configured.
         
@@ -158,11 +150,7 @@ class TotoAPIController:
             return base + path
         return path
     
-    def _wrap_handler(
-        self,
-        handler: Callable,
-        options: Optional[PathOptions] = None
-    ) -> Callable:
+    def _wrap_handler(self, handler: Callable, options: Optional[PathOptions] = None) -> Callable:
         """
         Wrap a handler with standard middleware (validation, error handling, etc.).
         
@@ -210,12 +198,7 @@ class TotoAPIController:
         corrected_path = self._apply_base_path(path, options)
         self.app.mount(corrected_path, StaticFiles(directory=folder), name="static")
     
-    def file_upload_path(
-        self,
-        path: str,
-        handler: Callable,
-        options: Optional[PathOptions] = None
-    ) -> None:
+    def file_upload_path(self, path: str, handler: Callable, options: Optional[PathOptions] = None) -> None:
         """
         Register a path that supports file uploads.
         
@@ -226,12 +209,7 @@ class TotoAPIController:
         """
         self.path(HTTPMethod.POST, path, handler, options)
     
-    def stream_get(
-        self,
-        path: str,
-        handler: Callable,
-        options: Optional[PathOptions] = None
-    ) -> None:
+    def stream_get(self, path: str, handler: Callable, options: Optional[PathOptions] = None) -> None:
         """
         Register a GET path that returns a stream response.
         
@@ -242,11 +220,7 @@ class TotoAPIController:
         """
         self.path(HTTPMethod.GET, path, handler, options)
     
-    def register_pub_sub_message_endpoint(
-        self,
-        path: str,
-        handler: Callable
-    ) -> None:
+    def register_pub_sub_message_endpoint(self, path: str, handler: Callable) -> None:
         """
         Register an endpoint for receiving Pub/Sub PUSH messages.
         
@@ -254,12 +228,7 @@ class TotoAPIController:
             path: The endpoint path (typically '/events')
             handler: Handler function to process messages
         """
-        self.path(
-            HTTPMethod.POST,
-            path,
-            handler,
-            PathOptions(no_auth=True)
-        )
+        self.path(HTTPMethod.POST, path, handler, PathOptions(no_auth=True))
     
     async def init(self) -> None:
         """
@@ -271,10 +240,7 @@ class TotoAPIController:
         - Cache registry data
         """
         # Register with Toto API Registry
-        self.logger.log(
-            "INIT",
-            f"API {self.api_name} initialization complete"
-        )
+        self.logger.log("INIT", f"API {self.api_name} initialization complete")
     
     def listen(self, port: Optional[int] = None) -> None:
         """
@@ -308,11 +274,6 @@ class TotoAPIController:
         port = port or self.options.port
         self.logger.log("INFO", f"Starting {self.api_name} on port {port}")
         
-        config = uvicorn.Config(
-            self.app,
-            host="0.0.0.0",
-            port=port,
-            log_level="info" if self.options.debug_mode else "warning"
-        )
+        config = uvicorn.Config(self.app, host="0.0.0.0", port=port, log_level="info" if self.options.debug_mode else "warning")
         server = uvicorn.Server(config)
         await server.serve()
