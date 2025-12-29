@@ -122,13 +122,10 @@ class TotoAPIController:
         # Apply base path if configured and not ignored
         corrected_path = self._apply_base_path(endpoint.path, options)
         
-        # Wrap the handler with standard middleware
-        wrapped_handler = self._wrap_handler(endpoint.delegate, options)
-        
         # Register with FastAPI
         self.app.add_api_route(
             corrected_path,
-            wrapped_handler,
+            endpoint.delegate,
             methods=[endpoint.method]
         )
     
@@ -149,40 +146,6 @@ class TotoAPIController:
             base = self.options.base_path.rstrip('/')
             return base + path
         return path
-    
-    def _wrap_handler(self, handler: Callable, options: Optional[PathOptions] = None) -> Callable:
-        """
-        Wrap a handler with standard middleware (validation, error handling, etc.).
-        
-        Args:
-            handler: The original handler
-            options: Optional PathOptions
-            
-        Returns:
-            The wrapped handler
-        """
-        # Check if handler is async
-        import asyncio
-        import inspect
-        
-        if inspect.iscoroutinefunction(handler):
-            async def async_wrapped(request: Request = None, *args, **kwargs):
-                try:
-                    result = await handler(request, *args, **kwargs)
-                    return result
-                except Exception as e:
-                    self.logger.log("ERROR", f"Handler error: {str(e)}")
-                    return {"error": str(e), "status": 500}
-            return async_wrapped
-        else:
-            async def sync_wrapped(request: Request = None, *args, **kwargs):
-                try:
-                    result = handler(request, *args, **kwargs)
-                    return result
-                except Exception as e:
-                    self.logger.log("ERROR", f"Handler error: {str(e)}")
-                    return {"error": str(e), "status": 500}
-            return sync_wrapped
     
     def static_content(self, path: str, folder: str, options: Optional[PathOptions] = None) -> None:
         """
