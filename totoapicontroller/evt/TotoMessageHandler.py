@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional
+from totoapicontroller.model.TotoConfig import TotoControllerConfig
 from totoapicontroller.evt.TotoMessage import TotoMessage
 
 
@@ -36,6 +37,9 @@ class TotoMessageHandler(ABC):
     
     Subclasses must implement the get_handled_message_type() and process_message() methods.
     """
+    
+    def __init__(self, config: TotoControllerConfig):
+        self.config = config
     
     @abstractmethod
     def get_handled_message_type(self) -> str:

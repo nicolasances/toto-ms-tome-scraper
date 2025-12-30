@@ -11,7 +11,9 @@ Run with: python app.py
 import asyncio
 import os
 from config.config import TomeScraperConfig
+from evt.handlers.TopicRefreshedMH import TopicRefreshedEventHandler
 from totoapicontroller import (
+    MessageBusHandlerConfig,
     TotoMicroservice,
     TotoMicroserviceConfiguration,
     TotoEnvironment,
@@ -46,6 +48,9 @@ def get_microservice_config() -> TotoMicroserviceConfiguration:
         message_bus_configuration=MessageBusConfig(
             topics=[
                 MessageBusTopicConfig(logical_name="tometopics", secret="tome_topics_topic_name")
+            ], 
+            message_handlers=[
+                MessageBusHandlerConfig(handler_class=TopicRefreshedEventHandler)
             ]
         ),
     )
