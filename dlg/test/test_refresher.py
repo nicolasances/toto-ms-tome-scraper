@@ -1,28 +1,16 @@
 
-import traceback
 from fastapi import Request
 from agent.refresher import RefreshersGenerator
-from agent.timeline import TimelineAgent
-from config.config import Config
+from config.config import TomeScraperConfig
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-from model.blog import Topic
-from model.errors import  TotoValidationError
-from model.timeline import Timeline
-from scraper.extract import CraftBlobTextExtractor
-from scraper.scrape import scrape_blog
-from storage.impl.gcs import KnowledgeBaseStorage
-from pymongo import MongoClient
-
-from util.section import merge_sections
-
-@toto_delegate(config_class=Config)
+@toto_delegate
 async def test_refresher(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     
-    config: Config = exec_context.config
+    config: TomeScraperConfig = exec_context.config
     logger = exec_context.logger
     cid = exec_context.cid
     

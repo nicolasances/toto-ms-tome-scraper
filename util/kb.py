@@ -1,12 +1,10 @@
 # This package stores all utility classes related to the knowledge base
 
 from totoapicontroller.model.ExecutionContext import ExecutionContext
-from config.config import Config
 from google.cloud import storage
 
 class KnowledgeBase: 
     
-    config: Config
     client: storage.Client
     knowledge_base_folder: str = 'kb'
     

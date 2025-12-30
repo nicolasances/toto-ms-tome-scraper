@@ -3,7 +3,7 @@ import json
 from typing import Type, TypedDict
 import jwt
 
-from totoapicontroller.model.TotoConfig import TotoConfig
+from totoapicontroller.model.TotoConfig import TotoControllerConfig
 
 class TokenVerificationResult:
     code: int
@@ -19,7 +19,7 @@ class TokenVerificationResult:
     
 class TotoTokenVerifier: 
     
-    def __init__(self, config: TotoConfig, cid: str = None): 
+    def __init__(self, config: TotoControllerConfig, cid: str = None): 
         
         self.cid = cid
         

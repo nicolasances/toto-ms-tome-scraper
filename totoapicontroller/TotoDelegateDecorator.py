@@ -1,64 +1,69 @@
 from fastapi import Request
 from totoapicontroller.TotoLogger import TotoLogger
-
+from totoapicontroller.TotoMicroservice import TotoMicroservice
 from totoapicontroller.TotoTokenVerifier import TotoTokenVerifier
 from totoapicontroller.model.ExecutionContext import ExecutionContext
-from totoapicontroller.model.TotoConfig import TotoConfig
+from totoapicontroller.model.TotoConfig import TotoControllerConfig
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ValidationResult import ValidationResult
 
-def toto_delegate(config_class): 
+def toto_delegate(dlg): 
+    """Creates a decorator for a Toto Delegate function  
+
+    Args:
+        dlg (callable): a function to decorate, that needs to have a signature f(request: Request, user_context: UserContext, exec_context: ExecutionContext)
+    """
     
-    def delegate(dlg): 
-        """Creates a decorator for a Toto Delegate function  
+    async def decorator(request: Request): 
+        """Decorator for a Toto Delegate function
+        
+        This decorator performs the following operations: 
+        1. Validates mandatory headers: x-correlation-id and Authorization header
+        2. Validates JWT token passed as Bearer token in the Authorization header
+        3. Creates the User Context to pass it to the delegate
+        4. Creates the Execution Context to pass it to the delegate
 
         Args:
-            dlg (callable): a function to decorate, that needs to have a signature f(request: Request, user_context: UserContext, exec_context: ExecutionContext)
+            request (Request): FastAPI Request object
+
+        Returns:
+            any: the returned value from the decorated function or a validation error
         """
         
-        async def decorator(request: Request): 
-            """Decorator for a Toto Delegate function
-            
-            This decorator performs the following operations: 
-            1. Validates mandatory headers: x-correlation-id and Authorization header
-            2. Validates JWT token passed as Bearer token in the Authorization header
-            3. Creates the User Context to pass it to the delegate
-            4. Creates the Execution Context to pass it to the delegate
+        microservice = TotoMicroservice.get_instance()
+        
+        config: TotoControllerConfig = microservice.config
+        logger = TotoLogger.get_instance()
+        message_bus = microservice.message_bus
+        
+        # Extract info 
+        cid, _ = await extract_info(request)
+        
+        # Validate the request
+        validation_result = await validate_request(request, config)
+        
+        if not validation_result.validation_passed: 
+            return validation_result.to_fastapi_response()
+        
+        # Log the incoming call
+        logger.log(cid, f"Incoming API Call: {request.method} {request.url.path}")
+        
+        # Create a user context object
+        user_context = UserContext(validation_result.token_verification_result.user_email)
+        
+        # Create an execution context object
+        execution_context = ExecutionContext(
+            logger=logger,
+            cid=cid,
+            config=config,
+            message_bus=message_bus, 
+            environment=microservice.microservice_configuration.environment
+        )
 
-            Args:
-                request (Request): FastAPI Request object
+        # Call the delegate
+        return await dlg(request, user_context, execution_context)
 
-            Returns:
-                any: the returned value from the decorated function or a validation error
-            """
-            
-            config: TotoConfig = config_class()
-            logger = TotoLogger(config.get_api_name())
-            
-            # Extract info 
-            cid, _ = await extract_info(request)
-            
-            # Validate the request
-            validation_result = await validate_request(request, config)
-            
-            if not validation_result.validation_passed: 
-                return validation_result.to_fastapi_response()
-            
-            # Log the incoming call
-            logger.log(cid, f"Incoming API Call: {request.method} {request.url.path}")
-            
-            # Create a user context object
-            user_context = UserContext(validation_result.token_verification_result.user_email)
-            
-            # Create an execution context object
-            execution_context = ExecutionContext(config, logger, cid)
-
-            # Call the delegate
-            return dlg(request, user_context, execution_context)
-
-        return decorator
-    
-    return delegate
+    return decorator
 
 
 async def extract_info(request: Request) :
@@ -75,7 +80,7 @@ async def extract_info(request: Request) :
 
     return cid, auth_header
 
-async def validate_request(request: Request, config: TotoConfig) -> ValidationResult: 
+async def validate_request(request: Request, config: TotoControllerConfig) -> ValidationResult: 
     """ Validates the core request data that is mandatory for any call
 
     Args:

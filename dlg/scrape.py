@@ -1,7 +1,9 @@
 
 from fastapi import Request
-from config.config import Config
+from datetime import datetime
 
+from totoapicontroller import MessageDestination
+from totoapicontroller.evt import TotoMessage
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
@@ -11,15 +13,13 @@ from model.errors import  TotoValidationError
 from scraper.extract import CraftBlobTextExtractor
 from scraper.scrape import scrape_blog
 from storage.kb import KnowledgeBaseStorageFactory, StorageBlogStructure
-from totopubsub.model import Context, TotoMessageData
-from totopubsub.pubsub import PubSubFactory
 
-def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
+async def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: str, exec_context: ExecutionContext): 
     
     # 1. Scrape the blog
     exec_context.logger.log(exec_context.cid, f'Scraping {blog_url} for topic {topic_name}')
     
-    html_content = scrape_blog(blog_url)
+    html_content = await scrape_blog(blog_url)
     
     # 2. Extract all the text
     blog_content: BlogContent = CraftBlobTextExtractor(html_content, topic_name).get_content()
@@ -28,17 +28,11 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
     kb_structure: StorageBlogStructure = KnowledgeBaseStorageFactory.get_storage(exec_context).store_blog_content(blog_content)
     
     # 5. Event on PubSub
-    pubsub_context = Context(
-        correlation_id=exec_context.cid,
-        region=exec_context.config.region,
-        hyperscaler=exec_context.config.hyperscaler
-    )
-    
-    event_publisher = PubSubFactory.create_pubsub(pubsub_context)
-    
-    msg = TotoMessageData(
+    msg = TotoMessage(
+        timestamp=datetime.now().strftime('%Y%m%d%H%M%S'),
+        cid=exec_context.cid,
         id=kb_structure.topic_code,
-        event_name="topicScraped",
+        type="topicScraped",
         msg=f"The content of topic {kb_structure.topic_code} has been saved in the Knowledge Base",
         data={
             "topicId": topic_id,
@@ -49,7 +43,10 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
         }
     )
     
-    event_publisher.publish_message(topic_name=exec_context.config.topics['tometopics'], message=msg)
+    await exec_context.message_bus.publish_message(
+        destination=MessageDestination(topic="tometopics"), 
+        message=msg
+    )
     
     # Return the blog content, the topic id and the blog url
     return {
@@ -57,7 +54,7 @@ def scrape_and_store_blog(blog_url: str, topic_name: str, topic_id: str, user: s
         "blogUrl": blog_url
     }
     
-@toto_delegate(config_class=Config)
+@toto_delegate
 async def extract_blog_content(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """This API Endpoint extracts the text content of a blog.
     It structures it according to Tome's Knowledge Base structure. 
@@ -97,5 +94,5 @@ async def extract_blog_content(request: Request, user_context: UserContext, exec
     if topic_id is None:
         return TotoValidationError("The topicId is mandatory").__dict__
     
-    return scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
+    return await scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
     

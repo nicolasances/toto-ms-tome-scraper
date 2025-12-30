@@ -1,101 +1,176 @@
-from enum import Enum
-import json
-import os
+"""
+TotoControllerConfig - Base configuration class for Toto microservices.
+
+Provides functionality for:
+- Loading secrets from cloud providers
+- Managing JWT signing keys and audience
+- Database connection details
+- API configuration and properties
+- Validating excluded paths
+"""
+import asyncio
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.model.singleton import singleton
-from google.cloud import secretmanager
+from totoapicontroller.model.TotoEnvironment import TotoEnvironment
 
-import boto3
-from botocore.exceptions import ClientError
 
-class CloudProvider(Enum):
-    AWS = 1
-    GCP = 2
-
-class TotoConfig(ABC): 
+class TotoControllerConfig(ABC):
+    """
+    Base abstract class for microservice configuration.
     
-    jwt_key: str
-    jwt_expected_audience: str
-    environment: str
+    Subclasses must implement methods to load configuration specific to their service.
+    This class handles common configuration like JWT keys, database connections, etc.
+    """
     
-    def __init__(self) -> None:
+    def __init__(self, environment: TotoEnvironment) -> None:
+        """
+        Initialize the configuration.
         
-        self.logger = TotoLogger(self.get_api_name())
-        self.environment = os.getenv("ENVIRONMENT", 'dev')
-        self.hyperscaler = os.getenv('HYPERSCALER', 'gcp') 
-        self.region = os.getenv('AWS_REGION', 'eu-north-1') if self.hyperscaler == 'aws' else os.getenv('GCP_REGION', 'europe-west1')
-
-        self.logger.log("INIT", f"Loading Configuration.. Hyperscaler: {self.hyperscaler}, Environment: {self.environment}, Region: {self.region}")
-
-        self.jwt_key = self.access_secret_version("jwt-signing-key")
-        self.jwt_expected_audience = self.access_secret_version("toto-expected-audience")
+        Args:
+            environment: The TotoEnvironment specifying hyperscaler and region
+        """
+        from totoapicontroller.secrets.SecretsManager import SecretsManager
         
+        self.logger = TotoLogger.get_instance()
+        self.environment = environment
+        self.secrets_manager = SecretsManager(environment)
+        
+        # Configuration properties (loaded lazily)
+        self._jwt_key: Optional[str] = None
+        self._jwt_expected_audience: Optional[str] = None
+        self._toto_registry_endpoint: Optional[str] = None
+        self._mongo_host: Optional[str] = None
+        self._mongo_user: Optional[str] = None
+        self._mongo_pwd: Optional[str] = None
+        self._is_loaded = False
+        
+        self.logger.log( "INIT", f"Initializing Configuration for environment: {environment.hyperscaler}" )
+    
+    async def load(self) -> "TotoControllerConfig":
+        """
+        Load all configuration from secrets manager.
+        
+        This method should be called once during application initialization.
+        Subclasses can override to add service-specific configuration loading.
+        """
+        if self._is_loaded:
+            return
+        
+        self.logger.log("INIT", "Loading configuration secrets...")
+        
+        # Load common secrets in parallel
+        self._jwt_key, self._jwt_expected_audience, self._toto_registry_endpoint = await asyncio.gather(
+            asyncio.to_thread(self.secrets_manager.get_secret, "jwt-signing-key"),
+            asyncio.to_thread(self.secrets_manager.get_secret, "toto-expected-audience"),
+            asyncio.to_thread(self.secrets_manager.get_secret, "toto-registry-endpoint"),
+        )
+        
+        # Load Mongo secrets in parallel if needed
+        mongo_secret_names = self.get_mongo_secret_names()
+        if mongo_secret_names:
+            self._mongo_host, self._mongo_user, self._mongo_pwd = await asyncio.gather(
+                asyncio.to_thread(self.secrets_manager.get_secret, "mongo-host"),
+                asyncio.to_thread(self.secrets_manager.get_secret, mongo_secret_names["user_secret_name"]),
+                asyncio.to_thread(self.secrets_manager.get_secret, mongo_secret_names["pwd_secret_name"]),
+            )
+        
+        self._is_loaded = True
+        self.logger.log("INIT", "Configuration loaded successfully")
+        
+        return self
+    
+    @property
+    def jwt_key(self) -> Optional[str]:
+        """Get the JWT signing key."""
+        return self._jwt_key
+    
+    @property
+    def jwt_expected_audience(self) -> Optional[str]:
+        """Get the expected JWT audience."""
+        return self._jwt_expected_audience
+    
+    @property
+    def toto_registry_endpoint(self) -> Optional[str]:
+        """Get the Toto Registry endpoint."""
+        return self._toto_registry_endpoint
+    
+    @property
+    def mongo_host(self) -> Optional[str]:
+        """Get the MongoDB host."""
+        return self._mongo_host
+    
+    @property
+    def mongo_user(self) -> Optional[str]:
+        """Get the MongoDB username."""
+        return self._mongo_user
+    
+    @property
+    def mongo_pwd(self) -> Optional[str]:
+        """Get the MongoDB password."""
+        return self._mongo_pwd
     
     @abstractmethod
-    def get_api_name(self) -> str: 
+    def get_api_name(self) -> str:
+        """
+        Get the name of this API.
+        
+        Returns:
+            The API name (e.g., 'topics', 'challenges', 'practice')
+        """
         pass
     
-    def is_path_excluded(self, path: str) -> bool:
-        return False
-    
-    def access_secret_version(self, secret_id: str):
-        """Retrieves a secret from the right cloud provider, based on the environment
-
-        Args:
-            secret_id (str): _description_
-
+    @abstractmethod
+    def get_expected_audience(self) -> str:
+        """
+        Get the expected audience for JWT validation.
+        
         Returns:
-            _type_: _description_
+            The expected audience
         """
+        pass
+    
+    def get_mongo_secret_names(self) -> Optional[Dict[str, str]]:
+        """
+        Get the names of Mongo secrets to load.
         
-        if self.hyperscaler == 'gcp':
-            self.logger.log("INIT", f"Accessing secret {secret_id} for hyperscaler {self.hyperscaler}")
-            return self.access_gcp_secret_version(secret_id)
-        else:
-            aws_region = os.getenv('AWS_REGION', 'eu-north-1')
-            self.logger.log("INIT", f"Accessing secret {self.environment}/{secret_id} for hyperscaler {self.hyperscaler} in region {aws_region}")
-            return self.access_aws_secret_version(f"{self.environment}/{secret_id}", aws_region)
-
-    def access_gcp_secret_version(self, secret_id, version_id="latest"):
-        """
-        Retrieves a Secret on GCP Secret Manager
-        """
-
-        project_id = os.environ["GCP_PID"]
-
-        # Create the Secret Manager client
-        client = secretmanager.SecretManagerServiceClient()
-
-        # Build the resource name of the secret version
-        name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-
-        # Access the secret version
-        response = client.access_secret_version(name=name)
-
-        # Extract the secret payload
-        payload = response.payload.data.decode("UTF-8")
-
-        return payload
-
-
-    def access_aws_secret_version(self, secret_name, region_name):
-        """
-        Retrieves a Secret on AWS Secrets Manager
-        """
-
-        # Create a Secrets Manager client
-        session = boto3.session.Session()
-        client = session.client(
-            service_name='secretsmanager',
-            region_name=region_name, 
-        )
-
-        try:
-            get_secret_value_response = client.get_secret_value( SecretId=secret_name )
-        except ClientError as e:
-            raise e
-
-        secret = get_secret_value_response['SecretString']
+        Override this method if your service uses MongoDB.
         
-        return secret
+        Returns:
+            A dictionary with 'user_secret_name' and 'pwd_secret_name' keys,
+            or None if MongoDB is not used
+        """
+        return None
+    
+    def is_path_excluded(self, path: str) -> bool:
+        """
+        Check if a path should be excluded from authentication validation.
+        
+        Override this method to exclude specific paths (e.g., '/health', '/smoke').
+        
+        Args:
+            path: The request path
+            
+        Returns:
+            True if the path should be excluded, False otherwise
+        """
+        # By default, exclude health and smoke paths
+        return path in ["/", "/health", "/smoke"]
+    
+    def get_props(self) -> Dict[str, Any]:
+        """
+        Get all configuration properties as a dictionary.
+        
+        Useful for debugging and logging.
+        
+        Returns:
+            A dictionary of configuration properties
+        """
+        return {
+            "api_name": self.get_api_name(),
+            "expected_audience": self.get_expected_audience(),
+            "mongo_enabled": self._mongo_host is not None,
+            "registry_endpoint": self.toto_registry_endpoint,
+        }
+    
+
