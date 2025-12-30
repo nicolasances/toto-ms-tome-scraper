@@ -40,7 +40,6 @@ def get_microservice_config() -> TotoMicroserviceConfiguration:
         api_configuration=APIConfiguration(
             api_endpoints=[
                 APIEndpoint(method="POST", path="/blogs", delegate=extract_blog_content),
-                APIEndpoint(method="POST", path="/events/topic", delegate=on_topic_event),
                 APIEndpoint(method="POST", path="/test/refresher", delegate=test_refresher),
                 APIEndpoint(method="POST", path="/test/pubsub", delegate=test_pubsub),
             ]
