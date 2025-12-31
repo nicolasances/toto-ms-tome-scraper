@@ -8,10 +8,12 @@ Provides functionality for:
 - Supporting both PUSH (webhooks) and PULL (polling) models
 - Integration with multiple hyperscalers (AWS, GCP, Azure)
 """
-from typing import Dict, List, Optional
-from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, cast
+from fastapi import Request
 
 from totoapicontroller.TotoLogger import TotoLogger
+from totoapicontroller.evt.Interfaces import IQueue, IMessageBus, IPubSub
+from totoapicontroller.evt.impl.SNS import SNSMessageBus
 from totoapicontroller.model.TotoEnvironment import TotoEnvironment
 from totoapicontroller.model.Hyperscaler import Hyperscaler
 from totoapicontroller.evt.MessageBusConfig import (
@@ -40,38 +42,6 @@ class MessageHandlerRegistration:
     def __init__(self, message_handler: TotoMessageHandler, message_type: str):
         self.message_handler = message_handler
         self.message_type = message_type
-
-
-class IMessageBus(ABC):
-    """Base interface for message bus implementations."""
-    
-    @abstractmethod
-    async def publish_message(
-        self,
-        destination: MessageDestination,
-        message: TotoMessage
-    ) -> None:
-        """Publish a message."""
-        pass
-    
-    @abstractmethod
-    def convert(self, envelope: Dict) -> TotoMessage:
-        """Convert a message envelope to TotoMessage."""
-        pass
-
-
-class IPubSub(IMessageBus):
-    """Interface for Pub/Sub message bus implementations."""
-    pass
-
-
-class IQueue(IMessageBus):
-    """Interface for Queue message bus implementations."""
-    
-    @abstractmethod
-    def set_message_handler(self, handler) -> None:
-        """Set the handler for PULL messages."""
-        pass
 
 
 class TotoMessageBus:
@@ -139,11 +109,7 @@ class TotoMessageBus:
                 f"Unsupported hyperscaler '{hyperscaler}' for MessageBus implementation"
             )
     
-    def register_message_handler(
-        self,
-        handler: TotoMessageHandler,
-        options: Optional[MessageHandlerRegistrationOptions] = None
-    ) -> None:
+    def register_message_handler(self, handler: TotoMessageHandler, options: Optional[MessageHandlerRegistrationOptions] = None ) -> None:
         """
         Register a message handler for processing incoming messages.
         
@@ -161,10 +127,7 @@ class TotoMessageBus:
         # Also store in list to maintain order
         self.message_handler_list.append(registration)
         
-        self.logger.log(
-            "INIT",
-            f"Registered message handler for message type: {message_type}"
-        )
+        self.logger.log( "INIT", f"Registered message handler for message type: {message_type}" )
     
     async def publish_message( self, destination: MessageDestination, message: TotoMessage ) -> None:
         """
@@ -179,17 +142,15 @@ class TotoMessageBus:
         """
         # Validate destination based on message bus type
         if isinstance(self.message_bus, IPubSub) and not destination.topic:
-            raise ValueError(
-                "MessageDestination.topic is required for Pub/Sub message buses"
-            )
+            raise ValueError("MessageDestination.topic is required for Pub/Sub message buses")
         
         if isinstance(self.message_bus, IQueue) and not destination.queue:
-            raise ValueError(
-                "MessageDestination.queue is required for Queue message buses"
-            )
+            raise ValueError("MessageDestination.queue is required for Queue message buses")
         
         # Resolve topic names if needed (map logical names to resource identifiers)
         resolved_destination = self._resolve_destination(destination)
+        
+        self.logger.log(message.cid, f"Publishing message {message.type} to {resolved_destination.topic if resolved_destination.topic is not None else resolved_destination.queue}")
         
         # Publish the message
         await self.message_bus.publish_message(resolved_destination, message)
@@ -280,7 +241,7 @@ class TotoMessageBus:
                 error=str(e)
             )
     
-    async def on_push_message_received(self, envelope: Dict) -> ProcessingResponse:
+    async def on_push_message_received(self, envelope: Request) -> ProcessingResponse:
         """
         Callback for PUSH Pub/Sub implementations when a message is received via webhook.
         
@@ -292,34 +253,43 @@ class TotoMessageBus:
         Returns:
             A ProcessingResponse with the result of handling
         """
+        self.logger.log("EVENT", "Received PUSH message from Messaging Infrastructure.")
+        
         if not isinstance(self.message_bus, IPubSub):
+            self.logger.log("EVENT", "Ignoring message as Message Bus is not an instance of IPubSub")
             return ProcessingResponse(
                 status=ProcessingStatus.IGNORED,
                 response_payload="Message bus is not a Pub/Sub implementation"
             )
+            
+        # Implementation-specific 
+        # For SNS: Subscription confirmation messages should be answered automatically by the SNS implementation
+        body = await envelope.json()
+        if (envelope.headers.get('x-amz-sns-message-type', '') == 'SubscriptionConfirmation' or body.get('Type', '') == 'SubscriptionConfirmation'):
+            self.logger.log("EVENT", "Received SNS SubscriptionConfirmation message. Ignoring as it should be handled by the SNS implementation.")
+            # We assume here that the Message Bus Implementation is thus an SNS implementation
+            return await cast(SNSMessageBus, self.message_bus).handle_subscription_confirmation(envelope)
         
         try:
             # Convert the envelope to a TotoMessage
-            message = self.message_bus.convert(envelope)
+            message = await self.message_bus.convert(envelope)
             
             # Find the handler for this message type
             handler = self._find_handler("push", message.type)
             
             if not handler:
+                self.logger.log("EVENT", f"No Message Handler found for message of type {message.type}")
                 return ProcessingResponse(
                     status=ProcessingStatus.IGNORED,
                     response_payload=f"No handler found for message type '{message.type}'"
                 )
-            
+                
             # Process the message
             return await handler.process_message(message)
         
         except Exception as e:
             self.logger.log("ERROR", f"Error processing PUSH message: {str(e)}")
-            return ProcessingResponse(
-                status=ProcessingStatus.FAILED,
-                error=str(e)
-            )
+            raise e
     
     def _find_handler(
         self,

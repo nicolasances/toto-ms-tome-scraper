@@ -3,6 +3,8 @@
 from totoapicontroller.evt.TotoMessageBus import (
     TotoMessageBus,
     MessageHandlerRegistration,
+)
+from totoapicontroller.evt.Interfaces import (
     IMessageBus,
     IPubSub,
     IQueue,

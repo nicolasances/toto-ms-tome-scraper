@@ -91,7 +91,7 @@ class GCPPubSubMessageBus(IPubSub):
             self.logger.log( "ERROR", f"Failed to publish message to GCP Pub/Sub topic {destination.topic}: {str(e)}" )
             raise
     
-    def convert(self, envelope: Dict) -> TotoMessage:
+    async def convert(self, envelope: Dict) -> TotoMessage:
         """
         Convert a GCP Pub/Sub message envelope to TotoMessage.
         

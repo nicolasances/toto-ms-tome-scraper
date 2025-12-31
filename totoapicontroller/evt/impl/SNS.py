@@ -7,11 +7,13 @@ import json
 from typing import Dict
 import boto3
 from botocore.exceptions import ClientError
+from fastapi import Request
 
 from totoapicontroller.TotoLogger import TotoLogger
 from totoapicontroller.evt.TotoMessageBus import IPubSub
 from totoapicontroller.evt.TotoMessage import TotoMessage
 from totoapicontroller.evt.MessageDestination import MessageDestination
+from totoapicontroller.evt.TotoMessageHandler import ProcessingResponse, ProcessingStatus
 from totoapicontroller.model.TotoEnvironment import AWSConfiguration
 
 
@@ -37,11 +39,7 @@ class SNSMessageBus(IPubSub):
         
         self.logger.log("INIT", f"SNS Message Bus initialized in region {config.region}")
     
-    async def publish_message(
-        self,
-        destination: MessageDestination,
-        message: TotoMessage
-    ) -> None:
+    async def publish_message( self, destination: MessageDestination, message: TotoMessage ) -> None:
         """
         Publish a message to an SNS topic.
         
@@ -94,7 +92,46 @@ class SNSMessageBus(IPubSub):
             )
             raise
     
-    def convert(self, envelope: Dict) -> TotoMessage:
+    async def handle_subscription_confirmation(self, envelope: Request) -> ProcessingResponse:
+        """
+        Handle SNS subscription confirmation messages.
+        Concretely does the following: 
+        - Extract the SubscribeURL from the message
+        - Send a GET request to the SubscribeURL to confirm the subscription
+        - Returns a ProcessingResponse IGNORED
+        
+        Args:
+            envelope: The SNS subscription confirmation message as a Request object
+        """
+        body = await envelope.json()
+        subscribe_url = body.get('SubscribeURL', '')
+        
+        if not subscribe_url:
+            self.logger.log("ERROR", "SNS SubscriptionConfirmation message missing SubscribeURL")
+            return ProcessingResponse(
+                status=ProcessingStatus.IGNORED,
+                response_payload="SNS SubscriptionConfirmation message missing SubscribeURL."
+            )
+        
+        import requests
+        
+        try:
+            response = requests.get(subscribe_url)
+            
+            if response.status_code == 200:
+                self.logger.log("INFO", "SNS subscription confirmed successfully.")
+            else:
+                self.logger.log("ERROR", f"SNS subscription confirmation failed with status code {response.status_code}.")
+                
+        except requests.RequestException as e:
+            self.logger.log("ERROR", f"Error confirming SNS subscription: {str(e)}")
+            
+        return ProcessingResponse(
+            status=ProcessingStatus.IGNORED,
+            response_payload="SNS subscription confirmed successfully."
+        )
+        
+    async def convert(self, envelope: Request) -> TotoMessage:
         """
         Convert an SNS message envelope to TotoMessage.
         
@@ -112,17 +149,19 @@ class SNSMessageBus(IPubSub):
             ValueError: If the message format is invalid
         """
         try:
+            body = await envelope.json()
+            
             # Check if this is an SNS notification (HTTP/HTTPS subscription)
-            if 'Type' in envelope and envelope['Type'] in ['Notification', 'SubscriptionConfirmation']:
-                return self._convert_sns_notification(envelope)
+            if body.get("Type", "") in ['Notification']:
+                return self._convert_sns_notification(body)
             
             # Check if this is an SQS message containing SNS data
-            elif 'Records' in envelope:
-                # Handle SQS messages that contain SNS notifications
-                if len(envelope['Records']) > 0:
-                    record = envelope['Records'][0]
-                    if 'Sns' in record:
-                        return self._convert_sns_notification(record['Sns'])
+            # elif 'Records' in envelope:
+            #     # Handle SQS messages that contain SNS notifications
+            #     if len(envelope['Records']) > 0:
+            #         record = envelope['Records'][0]
+            #         if 'Sns' in record:
+            #             return self._convert_sns_notification(record['Sns'])
             
             # Try to parse as direct message
             return self._convert_direct_message(envelope)
