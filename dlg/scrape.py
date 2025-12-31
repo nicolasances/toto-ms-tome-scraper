@@ -2,11 +2,11 @@
 from fastapi import Request
 from datetime import datetime
 
-from totoapicontroller import MessageDestination
-from totoapicontroller.evt import TotoMessage
-from totoapicontroller.TotoDelegateDecorator import toto_delegate
-from totoapicontroller.model.UserContext import UserContext
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms import MessageDestination
+from totoms.evt import TotoMessage
+from totoms.TotoDelegateDecorator import toto_delegate
+from totoms.model.UserContext import UserContext
+from totoms.model.ExecutionContext import ExecutionContext
 
 from model.blog import BlogContent
 from model.errors import  TotoValidationError

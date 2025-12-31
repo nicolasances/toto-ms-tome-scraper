@@ -1,4 +1,4 @@
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
+from totoms.model.TotoConfig import TotoControllerConfig
 from typing import Optional, Dict
 
 class TomeScraperConfig(TotoControllerConfig):

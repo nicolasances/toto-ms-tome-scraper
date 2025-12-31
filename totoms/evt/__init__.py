@@ -1,26 +1,26 @@
 """Event/Message bus module."""
 
-from totoapicontroller.evt.TotoMessageBus import (
+from totoms.evt.TotoMessageBus import (
     TotoMessageBus,
     MessageHandlerRegistration,
 )
-from totoapicontroller.evt.Interfaces import (
+from totoms.evt.Interfaces import (
     IMessageBus,
     IPubSub,
     IQueue,
 )
-from totoapicontroller.evt.MessageBusConfig import (
+from totoms.evt.MessageBusConfig import (
     MessageBusConfiguration,
     TopicIdentifier,
     MessageHandlerRegistrationOptions,
 )
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.evt.TotoMessageHandler import (
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.evt.TotoMessageHandler import (
     TotoMessageHandler,
     ProcessingResponse,
     ProcessingStatus,
 )
-from totoapicontroller.evt.MessageDestination import MessageDestination
+from totoms.evt.MessageDestination import MessageDestination
 
 __all__ = [
     "TotoMessageBus",

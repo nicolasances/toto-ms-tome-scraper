@@ -7,8 +7,8 @@ import boto3
 from google.cloud import secretmanager
 
 from agent.refresher import ClientError
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.model.TotoEnvironment import AWSConfiguration, GCPConfiguration, TotoEnvironment
+from totoms.TotoLogger import TotoLogger
+from totoms.model.TotoEnvironment import AWSConfiguration, GCPConfiguration, TotoEnvironment
 
 @dataclass
 class SecretsManager: 

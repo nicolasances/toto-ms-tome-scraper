@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
 from typing import Literal, Union
-from totoapicontroller.model.Hyperscaler import Hyperscaler
+from totoms.model.Hyperscaler import Hyperscaler
 
 Environment = Literal["dev", "test", "prod"]
 

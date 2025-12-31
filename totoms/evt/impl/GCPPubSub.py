@@ -10,11 +10,11 @@ from typing import Dict
 from google.cloud import pubsub_v1
 import google.auth
 
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.evt.TotoMessageBus import IPubSub
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.evt.MessageDestination import MessageDestination
-from totoapicontroller.model.TotoEnvironment import GCPConfiguration
+from totoms.TotoLogger import TotoLogger
+from totoms.evt.TotoMessageBus import IPubSub
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.evt.MessageDestination import MessageDestination
+from totoms.model.TotoEnvironment import GCPConfiguration
 
 
 class GCPPubSubMessageBus(IPubSub):

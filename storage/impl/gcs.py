@@ -1,4 +1,4 @@
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.model.ExecutionContext import ExecutionContext
 
 from model.blog import BlogContent
 from util.naming import generate_section_code, generate_topic_code

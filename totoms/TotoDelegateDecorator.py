@@ -1,11 +1,11 @@
 from fastapi import Request
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.TotoMicroservice import TotoMicroservice
-from totoapicontroller.TotoTokenVerifier import TotoTokenVerifier
-from totoapicontroller.model.ExecutionContext import ExecutionContext
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
-from totoapicontroller.model.UserContext import UserContext
-from totoapicontroller.model.ValidationResult import ValidationResult
+from totoms.TotoLogger import TotoLogger
+from totoms.TotoMicroservice import TotoMicroservice
+from totoms.TotoTokenVerifier import TotoTokenVerifier
+from totoms.model.ExecutionContext import ExecutionContext
+from totoms.model.TotoConfig import TotoControllerConfig
+from totoms.model.UserContext import UserContext
+from totoms.model.ValidationResult import ValidationResult
 
 def toto_delegate(dlg): 
     """Creates a decorator for a Toto Delegate function  

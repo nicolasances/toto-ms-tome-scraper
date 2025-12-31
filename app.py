@@ -12,14 +12,14 @@ import asyncio
 import os
 from config.config import TomeScraperConfig
 from evt.handlers.TopicRefreshedMH import TopicRefreshedEventHandler
-from totoapicontroller import (
+from totoms import (
     MessageBusHandlerConfig,
     TotoMicroservice,
     TotoMicroserviceConfiguration,
     TotoEnvironment,
     APIConfiguration,
 )
-from totoapicontroller.TotoMicroservice import APIEndpoint, determine_environment, MessageBusTopicConfig, MessageBusConfig
+from totoms.TotoMicroservice import APIEndpoint, determine_environment, MessageBusTopicConfig, MessageBusConfig
 
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher

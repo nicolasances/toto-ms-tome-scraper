@@ -1,7 +1,7 @@
 
 from fastapi.responses import JSONResponse
 
-from totoapicontroller.TotoTokenVerifier import TokenVerificationResult
+from totoms.TotoTokenVerifier import TokenVerificationResult
 
 
 class ValidationResult: 

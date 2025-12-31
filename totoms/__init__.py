@@ -9,7 +9,7 @@ Provides:
 """
 
 # Core classes
-from totoapicontroller.TotoMicroservice import (
+from totoms.TotoMicroservice import (
     TotoMicroservice,
     TotoMicroserviceConfiguration,
     APIConfiguration,
@@ -18,48 +18,48 @@ from totoapicontroller.TotoMicroservice import (
     MessageBusTopicConfig,
 )
 
-from totoapicontroller.api.TotoAPIController import (
+from totoms.api.TotoAPIController import (
     TotoAPIController,
     HTTPMethod,
 )
 
-from totoapicontroller.api.APIControllerProps import APIControllerProps
-from totoapicontroller.api.APIControllerOptions import APIControllerOptions
+from totoms.api.APIControllerProps import APIControllerProps
+from totoms.api.APIControllerOptions import APIControllerOptions
 
-from totoapicontroller.evt.TotoMessageBus import (
+from totoms.evt.TotoMessageBus import (
     TotoMessageBus,
     MessageHandlerRegistration,
 )
 
-from totoapicontroller.evt.MessageBusConfig import (
+from totoms.evt.MessageBusConfig import (
     MessageBusConfiguration as MessageBusConfigType,
     TopicIdentifier,
     MessageHandlerRegistrationOptions,
 )
 
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.evt.TotoMessageHandler import (
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.evt.TotoMessageHandler import (
     TotoMessageHandler,
     ProcessingResponse,
     ProcessingStatus,
 )
-from totoapicontroller.evt.MessageDestination import MessageDestination
+from totoms.evt.MessageDestination import MessageDestination
 
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
-from totoapicontroller.model.TotoEnvironment import (
+from totoms.model.TotoConfig import TotoControllerConfig
+from totoms.model.TotoEnvironment import (
     TotoEnvironment,
     AWSConfiguration,
     GCPConfiguration,
     AzureConfiguration,
 )
-from totoapicontroller.model.Hyperscaler import Hyperscaler
-from totoapicontroller.model.PathOptions import PathOptions
+from totoms.model.Hyperscaler import Hyperscaler
+from totoms.model.PathOptions import PathOptions
 
 # Logger
-from totoapicontroller.TotoLogger import TotoLogger
+from totoms.TotoLogger import TotoLogger
 
 # Utilities
-from totoapicontroller.secrets.SecretsManager import SecretsManager
+from totoms.secrets.SecretsManager import SecretsManager
 
 __all__ = [
     # Microservice

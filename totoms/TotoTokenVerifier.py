@@ -1,9 +1,8 @@
 import base64
 import json
-from typing import Type, TypedDict
 import jwt
 
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
+from totoms.model.TotoConfig import TotoControllerConfig
 
 class TokenVerificationResult:
     code: int

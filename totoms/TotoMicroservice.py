@@ -15,21 +15,21 @@ import asyncio
 
 from fastapi import Request
 
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
-from totoapicontroller.secrets.SecretsManager import SecretsManager
-from totoapicontroller.api.TotoAPIController import TotoAPIController
-from totoapicontroller.api.APIControllerProps import APIControllerProps
-from totoapicontroller.api.APIControllerOptions import APIControllerOptions
-from totoapicontroller.evt.TotoMessageBus import TotoMessageBus
-from totoapicontroller.model.TotoAPIEndpoint import APIEndpoint
+from totoms.TotoLogger import TotoLogger
+from totoms.model.TotoEnvironment import TotoEnvironment
+from totoms.model.TotoConfig import TotoControllerConfig
+from totoms.secrets.SecretsManager import SecretsManager
+from totoms.api.TotoAPIController import TotoAPIController
+from totoms.api.APIControllerProps import APIControllerProps
+from totoms.api.APIControllerOptions import APIControllerOptions
+from totoms.evt.TotoMessageBus import TotoMessageBus
+from totoms.model.TotoAPIEndpoint import APIEndpoint
 
-from totoapicontroller.evt.MessageBusConfig import (
+from totoms.evt.MessageBusConfig import (
     MessageBusConfiguration,
     TopicIdentifier,
 )
-from totoapicontroller.evt.TotoMessageHandler import TotoMessageHandler
+from totoms.evt.TotoMessageHandler import TotoMessageHandler
 
 @dataclass
 class APIConfiguration:
@@ -262,14 +262,14 @@ def determine_environment() -> TotoEnvironment:
     hyperscaler = os.getenv("HYPERSCALER", "aws").lower()
     
     if hyperscaler == "gcp":
-        from totoapicontroller.model.TotoEnvironment import GCPConfiguration
+        from totoms.model.TotoEnvironment import GCPConfiguration
         
         project_id = os.getenv("GCP_PID")
         
         return GCPConfiguration(project_id=project_id)
     
     elif hyperscaler == "aws":
-        from totoapicontroller.model.TotoEnvironment import AWSConfiguration
+        from totoms.model.TotoEnvironment import AWSConfiguration
         
         region = os.getenv("AWS_REGION", "eu-north-1")
         environment = os.getenv("ENVIRONMENT", "dev")

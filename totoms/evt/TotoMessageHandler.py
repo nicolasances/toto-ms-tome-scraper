@@ -5,15 +5,15 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
+from totoms.model.TotoConfig import TotoControllerConfig
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.TotoLogger import TotoLogger
+from totoms.model.TotoEnvironment import TotoEnvironment
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from totoapicontroller.evt.TotoMessageBus import TotoMessageBus
+    from totoms.evt.TotoMessageBus import TotoMessageBus
 
 
 class ProcessingStatus(str, Enum):

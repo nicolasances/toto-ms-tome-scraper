@@ -3,9 +3,9 @@ Message Bus configuration types.
 """
 from dataclasses import dataclass, field
 from typing import List, Optional, Callable
-from totoapicontroller.api.TotoAPIController import TotoAPIController
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
+from totoms.api.TotoAPIController import TotoAPIController
+from totoms.model.TotoConfig import TotoControllerConfig
+from totoms.model.TotoEnvironment import TotoEnvironment
 
 
 @dataclass

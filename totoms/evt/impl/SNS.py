@@ -9,12 +9,12 @@ import boto3
 from botocore.exceptions import ClientError
 from fastapi import Request
 
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.evt.TotoMessageBus import IPubSub
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.evt.MessageDestination import MessageDestination
-from totoapicontroller.evt.TotoMessageHandler import ProcessingResponse, ProcessingStatus
-from totoapicontroller.model.TotoEnvironment import AWSConfiguration
+from totoms.TotoLogger import TotoLogger
+from totoms.evt.TotoMessageBus import IPubSub
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.evt.MessageDestination import MessageDestination
+from totoms.evt.TotoMessageHandler import ProcessingResponse, ProcessingStatus
+from totoms.model.TotoEnvironment import AWSConfiguration
 
 
 class SNSMessageBus(IPubSub):

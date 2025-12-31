@@ -13,11 +13,11 @@ from enum import Enum
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.api.APIControllerProps import APIControllerProps
-from totoapicontroller.api.APIControllerOptions import APIControllerOptions
-from totoapicontroller.model.PathOptions import PathOptions
-from totoapicontroller.model.TotoAPIEndpoint import APIEndpoint
+from totoms.TotoLogger import TotoLogger
+from totoms.api.APIControllerProps import APIControllerProps
+from totoms.api.APIControllerOptions import APIControllerOptions
+from totoms.model.PathOptions import PathOptions
+from totoms.model.TotoAPIEndpoint import APIEndpoint
 
 
 class HTTPMethod(str, Enum):

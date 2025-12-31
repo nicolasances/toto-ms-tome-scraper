@@ -1,9 +1,9 @@
 
 from dlg.scrape import scrape_and_store_blog
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.evt.TotoMessageBus import ProcessingResponse, ProcessingStatus
-from totoapicontroller.evt.TotoMessageHandler import TotoMessageHandler
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.evt.TotoMessageBus import ProcessingResponse, ProcessingStatus
+from totoms.evt.TotoMessageHandler import TotoMessageHandler
+from totoms.model.ExecutionContext import ExecutionContext
 
 class TopicRefreshedEventHandler(TotoMessageHandler): 
     

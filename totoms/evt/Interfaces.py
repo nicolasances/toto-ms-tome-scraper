@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from totoapicontroller.evt.MessageDestination import MessageDestination
-from totoapicontroller.evt.TotoMessage import TotoMessage
+from totoms.evt.MessageDestination import MessageDestination
+from totoms.evt.TotoMessage import TotoMessage
 
 class IMessageBus(ABC):
     """Base interface for message bus implementations."""

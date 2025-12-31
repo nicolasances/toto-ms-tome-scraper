@@ -3,8 +3,8 @@ Configuration properties for TotoAPIController.
 """
 from dataclasses import dataclass, field
 from typing import Optional, Type
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
-from totoapicontroller.model.TotoConfig import TotoControllerConfig
+from totoms.model.TotoEnvironment import TotoEnvironment
+from totoms.model.TotoConfig import TotoControllerConfig
 
 
 @dataclass

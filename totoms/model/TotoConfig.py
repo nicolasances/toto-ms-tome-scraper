@@ -11,8 +11,8 @@ Provides functionality for:
 import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
+from totoms.TotoLogger import TotoLogger
+from totoms.model.TotoEnvironment import TotoEnvironment
 
 
 class TotoControllerConfig(ABC):
@@ -30,7 +30,7 @@ class TotoControllerConfig(ABC):
         Args:
             environment: The TotoEnvironment specifying hyperscaler and region
         """
-        from totoapicontroller.secrets.SecretsManager import SecretsManager
+        from totoms.secrets.SecretsManager import SecretsManager
         
         self.logger = TotoLogger.get_instance()
         self.environment = environment

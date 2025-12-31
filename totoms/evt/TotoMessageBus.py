@@ -11,23 +11,23 @@ Provides functionality for:
 from typing import Dict, List, Optional, cast
 from fastapi import Request
 
-from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.evt.Interfaces import IQueue, IMessageBus, IPubSub
-from totoapicontroller.evt.impl.SNS import SNSMessageBus
-from totoapicontroller.model.TotoEnvironment import TotoEnvironment
-from totoapicontroller.model.Hyperscaler import Hyperscaler
-from totoapicontroller.evt.MessageBusConfig import (
+from totoms.TotoLogger import TotoLogger
+from totoms.evt.Interfaces import IQueue, IMessageBus, IPubSub
+from totoms.evt.impl.SNS import SNSMessageBus
+from totoms.model.TotoEnvironment import TotoEnvironment
+from totoms.model.Hyperscaler import Hyperscaler
+from totoms.evt.MessageBusConfig import (
     MessageBusConfiguration,
     TopicIdentifier,
     MessageHandlerRegistrationOptions,
 )
-from totoapicontroller.evt.TotoMessage import TotoMessage
-from totoapicontroller.evt.TotoMessageHandler import (
+from totoms.evt.TotoMessage import TotoMessage
+from totoms.evt.TotoMessageHandler import (
     TotoMessageHandler,
     ProcessingResponse,
     ProcessingStatus,
 )
-from totoapicontroller.evt.MessageDestination import MessageDestination
+from totoms.evt.MessageDestination import MessageDestination
 
 
 class MessageHandlerRegistration:
@@ -92,12 +92,12 @@ class TotoMessageBus:
         hyperscaler = self.config.environment.hyperscaler
         
         if hyperscaler == "aws":
-            from totoapicontroller.evt.impl.SNS import SNSMessageBus
+            from totoms.evt.impl.SNS import SNSMessageBus
             self.logger.log("INIT", "Initializing AWS SNS message bus")
             return SNSMessageBus(config=self.config.environment.hyperscaler_configuration)
         
         elif hyperscaler == "gcp":
-            from totoapicontroller.evt.impl.GCPPubSub import GCPPubSubMessageBus
+            from totoms.evt.impl.GCPPubSub import GCPPubSubMessageBus
             self.logger.log("INIT", "Initializing GCP Pub/Sub message bus")
             return GCPPubSubMessageBus(config=self.config.environment.hyperscaler_configuration)
         
