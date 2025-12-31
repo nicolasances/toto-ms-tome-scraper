@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any, Optional
 from totoapicontroller.model.TotoConfig import TotoControllerConfig
 from totoapicontroller.evt.TotoMessage import TotoMessage
+from totoapicontroller.TotoLogger import TotoLogger
 
 
 class ProcessingStatus(str, Enum):
@@ -40,6 +41,7 @@ class TotoMessageHandler(ABC):
     
     def __init__(self, config: TotoControllerConfig):
         self.config = config
+        self.logger = TotoLogger.get_instance()
     
     @abstractmethod
     def get_handled_message_type(self) -> str:
