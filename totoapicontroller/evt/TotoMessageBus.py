@@ -281,7 +281,7 @@ class TotoMessageBus:
         
         try:
             # Convert the envelope to a TotoMessage
-            message = self.message_bus.convert(envelope)
+            message = await self.message_bus.convert(envelope)
             
             # Find the handler for this message type
             handler = self._find_handler("push", message.type)
