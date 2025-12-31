@@ -8,12 +8,12 @@ Provides functionality for:
 - Supporting both PUSH (webhooks) and PULL (polling) models
 - Integration with multiple hyperscalers (AWS, GCP, Azure)
 """
-from typing import Dict, List, Optional
-from abc import ABC, abstractmethod
-
+from typing import Dict, List, Optional, cast
 from fastapi import Request
 
 from totoapicontroller.TotoLogger import TotoLogger
+from totoapicontroller.evt.Interfaces import IQueue, IMessageBus, IPubSub
+from totoapicontroller.evt.impl.SNS import SNSMessageBus
 from totoapicontroller.model.TotoEnvironment import TotoEnvironment
 from totoapicontroller.model.Hyperscaler import Hyperscaler
 from totoapicontroller.evt.MessageBusConfig import (
@@ -42,38 +42,6 @@ class MessageHandlerRegistration:
     def __init__(self, message_handler: TotoMessageHandler, message_type: str):
         self.message_handler = message_handler
         self.message_type = message_type
-
-
-class IMessageBus(ABC):
-    """Base interface for message bus implementations."""
-    
-    @abstractmethod
-    async def publish_message(
-        self,
-        destination: MessageDestination,
-        message: TotoMessage
-    ) -> None:
-        """Publish a message."""
-        pass
-    
-    @abstractmethod
-    def convert(self, envelope: Dict) -> TotoMessage:
-        """Convert a message envelope to TotoMessage."""
-        pass
-
-
-class IPubSub(IMessageBus):
-    """Interface for Pub/Sub message bus implementations."""
-    pass
-
-
-class IQueue(IMessageBus):
-    """Interface for Queue message bus implementations."""
-    
-    @abstractmethod
-    def set_message_handler(self, handler) -> None:
-        """Set the handler for PULL messages."""
-        pass
 
 
 class TotoMessageBus:
@@ -306,10 +274,8 @@ class TotoMessageBus:
         # For SNS: Subscription confirmation messages should be answered automatically by the SNS implementation 
         if (envelope.headers.get('x-amz-sns-message-type', '') == 'SubscriptionConfirmation' or envelope.body.get('Type', '') == 'SubscriptionConfirmation'):
             self.logger.log("EVENT", "Received SNS SubscriptionConfirmation message. Ignoring as it should be handled by the SNS implementation.")
-            return ProcessingResponse(
-                status=ProcessingStatus.IGNORED,
-                response_payload="SNS SubscriptionConfirmation message ignored."
-            )
+            # We assume here that the Message Bus Implementation is thus an SNS implementation
+            return await cast(SNSMessageBus, self.message_bus).handle_subscription_confirmation(envelope)
         
         try:
             # Convert the envelope to a TotoMessage

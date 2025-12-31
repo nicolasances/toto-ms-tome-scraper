@@ -13,6 +13,7 @@ from totoapicontroller.TotoLogger import TotoLogger
 from totoapicontroller.evt.TotoMessageBus import IPubSub
 from totoapicontroller.evt.TotoMessage import TotoMessage
 from totoapicontroller.evt.MessageDestination import MessageDestination
+from totoapicontroller.evt.TotoMessageHandler import ProcessingResponse
 from totoapicontroller.model.TotoEnvironment import AWSConfiguration
 
 
@@ -91,6 +92,44 @@ class SNSMessageBus(IPubSub):
             )
             raise
     
+    async def handle_subscription_confirmation(self, envelope: Request) -> ProcessingResponse:
+        """
+        Handle SNS subscription confirmation messages.
+        Concretely does the following: 
+        - Extract the SubscribeURL from the message
+        - Send a GET request to the SubscribeURL to confirm the subscription
+        - Returns a ProcessingResponse IGNORED
+        
+        Args:
+            envelope: The SNS subscription confirmation message as a Request object
+        """
+        subscribe_url = envelope.body.get('SubscribeURL', '')
+        
+        if not subscribe_url:
+            self.logger.log("ERROR", "SNS SubscriptionConfirmation message missing SubscribeURL")
+            return ProcessingResponse(
+                status=ProcessingResponse.IGNORED,
+                response_payload="SNS SubscriptionConfirmation message missing SubscribeURL."
+            )
+        
+        import requests
+        
+        try:
+            response = requests.get(subscribe_url)
+            
+            if response.status_code == 200:
+                self.logger.log("INFO", "SNS subscription confirmed successfully.")
+            else:
+                self.logger.log("ERROR", f"SNS subscription confirmation failed with status code {response.status_code}.")
+                
+        except requests.RequestException as e:
+            self.logger.log("ERROR", f"Error confirming SNS subscription: {str(e)}")
+            
+        return ProcessingResponse(
+            status=ProcessingResponse.IGNORED,
+            response_payload="SNS subscription confirmed successfully."
+        )
+        
     def convert(self, envelope: Request) -> TotoMessage:
         """
         Convert an SNS message envelope to TotoMessage.
