@@ -11,6 +11,8 @@ Provides functionality for:
 from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
 
+from fastapi import Request
+
 from totoapicontroller.TotoLogger import TotoLogger
 from totoapicontroller.model.TotoEnvironment import TotoEnvironment
 from totoapicontroller.model.Hyperscaler import Hyperscaler
@@ -280,7 +282,7 @@ class TotoMessageBus:
                 error=str(e)
             )
     
-    async def on_push_message_received(self, envelope: Dict) -> ProcessingResponse:
+    async def on_push_message_received(self, envelope: Request) -> ProcessingResponse:
         """
         Callback for PUSH Pub/Sub implementations when a message is received via webhook.
         
@@ -292,6 +294,8 @@ class TotoMessageBus:
         Returns:
             A ProcessingResponse with the result of handling
         """
+        self.logger.log("EVENT", "Received PUSH message from Messaging Infrastructure.")
+        
         if not isinstance(self.message_bus, IPubSub):
             return ProcessingResponse(
                 status=ProcessingStatus.IGNORED,

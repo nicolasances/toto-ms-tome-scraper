@@ -129,6 +129,8 @@ class TotoAPIController:
             methods=[endpoint.method]
         )
         
+        self.logger.log("INIT", f"Registered API path: {endpoint.method} {corrected_path}")
+        
     def _apply_base_path(self, path: str, options: Optional[PathOptions] = None) -> str:
         """
         Apply base path to the given path if configured.
