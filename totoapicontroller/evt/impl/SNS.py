@@ -10,10 +10,10 @@ from botocore.exceptions import ClientError
 from fastapi import Request
 
 from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.evt.TotoMessageBus import IPubSub, ProcessingStatus
+from totoapicontroller.evt.TotoMessageBus import IPubSub
 from totoapicontroller.evt.TotoMessage import TotoMessage
 from totoapicontroller.evt.MessageDestination import MessageDestination
-from totoapicontroller.evt.TotoMessageHandler import ProcessingResponse
+from totoapicontroller.evt.TotoMessageHandler import ProcessingResponse, ProcessingStatus
 from totoapicontroller.model.TotoEnvironment import AWSConfiguration
 
 
