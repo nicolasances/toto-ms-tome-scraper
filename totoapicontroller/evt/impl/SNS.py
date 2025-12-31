@@ -7,6 +7,7 @@ import json
 from typing import Dict
 import boto3
 from botocore.exceptions import ClientError
+from fastapi import Request
 
 from totoapicontroller.TotoLogger import TotoLogger
 from totoapicontroller.evt.TotoMessageBus import IPubSub
@@ -37,11 +38,7 @@ class SNSMessageBus(IPubSub):
         
         self.logger.log("INIT", f"SNS Message Bus initialized in region {config.region}")
     
-    async def publish_message(
-        self,
-        destination: MessageDestination,
-        message: TotoMessage
-    ) -> None:
+    async def publish_message( self, destination: MessageDestination, message: TotoMessage ) -> None:
         """
         Publish a message to an SNS topic.
         
@@ -94,7 +91,7 @@ class SNSMessageBus(IPubSub):
             )
             raise
     
-    def convert(self, envelope: Dict) -> TotoMessage:
+    def convert(self, envelope: Request) -> TotoMessage:
         """
         Convert an SNS message envelope to TotoMessage.
         
@@ -113,16 +110,16 @@ class SNSMessageBus(IPubSub):
         """
         try:
             # Check if this is an SNS notification (HTTP/HTTPS subscription)
-            if 'Type' in envelope and envelope['Type'] in ['Notification', 'SubscriptionConfirmation']:
+            if envelope.get("Type", "") in ['Notification']:
                 return self._convert_sns_notification(envelope)
             
             # Check if this is an SQS message containing SNS data
-            elif 'Records' in envelope:
-                # Handle SQS messages that contain SNS notifications
-                if len(envelope['Records']) > 0:
-                    record = envelope['Records'][0]
-                    if 'Sns' in record:
-                        return self._convert_sns_notification(record['Sns'])
+            # elif 'Records' in envelope:
+            #     # Handle SQS messages that contain SNS notifications
+            #     if len(envelope['Records']) > 0:
+            #         record = envelope['Records'][0]
+            #         if 'Sns' in record:
+            #             return self._convert_sns_notification(record['Sns'])
             
             # Try to parse as direct message
             return self._convert_direct_message(envelope)
@@ -131,7 +128,7 @@ class SNSMessageBus(IPubSub):
             self.logger.log("ERROR", f"Failed to convert SNS message: {str(e)}")
             raise ValueError(f"Invalid SNS message format: {str(e)}")
     
-    def _convert_sns_notification(self, sns_message: Dict) -> TotoMessage:
+    def _convert_sns_notification(self, sns_message: Request) -> TotoMessage:
         """
         Convert an SNS notification to TotoMessage.
         
@@ -142,7 +139,7 @@ class SNSMessageBus(IPubSub):
             Parsed TotoMessage
         """
         # Extract the message body
-        message_body = sns_message.get('Message', '{}')
+        message_body = sns_message.body.get('Message', '{}')
         
         # Parse the message body (it's usually JSON)
         if isinstance(message_body, str):

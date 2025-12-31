@@ -301,6 +301,15 @@ class TotoMessageBus:
                 status=ProcessingStatus.IGNORED,
                 response_payload="Message bus is not a Pub/Sub implementation"
             )
+            
+        # Implementation-specific 
+        # For SNS: Subscription confirmation messages should be answered automatically by the SNS implementation 
+        if (envelope.headers.get('x-amz-sns-message-type', '') == 'SubscriptionConfirmation' or envelope.body.get('Type', '') == 'SubscriptionConfirmation'):
+            self.logger.log("EVENT", "Received SNS SubscriptionConfirmation message. Ignoring as it should be handled by the SNS implementation.")
+            return ProcessingResponse(
+                status=ProcessingStatus.IGNORED,
+                response_payload="SNS SubscriptionConfirmation message ignored."
+            )
         
         try:
             # Convert the envelope to a TotoMessage
