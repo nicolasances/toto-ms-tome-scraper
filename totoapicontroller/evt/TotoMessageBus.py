@@ -289,10 +289,7 @@ class TotoMessageBus:
         
         except Exception as e:
             self.logger.log("ERROR", f"Error processing PUSH message: {str(e)}")
-            return ProcessingResponse(
-                status=ProcessingStatus.FAILED,
-                error=str(e)
-            )
+            raise e
     
     def _find_handler(
         self,
