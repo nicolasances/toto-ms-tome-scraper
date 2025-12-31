@@ -14,8 +14,19 @@ class GCSKnowledgeBaseStorage(KnowledgeBaseStorage):
         self.config = exec_context.config
         self.logger = exec_context.logger
         self.cid = exec_context.cid
+        self.environment = exec_context.environment
         self.client = storage.Client()
 
+    def _get_tome_bucket_name(self) -> str:
+        """Get the GCS bucket name for tome data
+        
+        Returns:
+            str: The GCS bucket name
+        """
+        bucket_name = f'{self.environment.hyperscaler_configuration.project_id}-tome-bucket'
+        
+        return bucket_name
+    
     def store_blog_content(self, blog_content: BlogContent) -> StorageBlogStructure: 
         """Stores the blog content in the knowledge base
         
@@ -28,7 +39,7 @@ class GCSKnowledgeBaseStorage(KnowledgeBaseStorage):
         self.logger.log(self.cid, f'Storing Blog "{blog_content.title}" in the knowledge base. Storing {len(blog_content.sections)} sections.')
         
         # 1. Get the Bucket
-        bucket = self.client.get_bucket(self.config.get_tome_bucket_name())
+        bucket = self.client.get_bucket(self._get_tome_bucket_name())
         
         # 2. Generate the Topic Code 
         topic_code = generate_topic_code(blog_content.title)
