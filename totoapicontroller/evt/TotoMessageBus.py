@@ -109,11 +109,7 @@ class TotoMessageBus:
                 f"Unsupported hyperscaler '{hyperscaler}' for MessageBus implementation"
             )
     
-    def register_message_handler(
-        self,
-        handler: TotoMessageHandler,
-        options: Optional[MessageHandlerRegistrationOptions] = None
-    ) -> None:
+    def register_message_handler(self, handler: TotoMessageHandler, options: Optional[MessageHandlerRegistrationOptions] = None ) -> None:
         """
         Register a message handler for processing incoming messages.
         
@@ -131,10 +127,7 @@ class TotoMessageBus:
         # Also store in list to maintain order
         self.message_handler_list.append(registration)
         
-        self.logger.log(
-            "INIT",
-            f"Registered message handler for message type: {message_type}"
-        )
+        self.logger.log( "INIT", f"Registered message handler for message type: {message_type}" )
     
     async def publish_message( self, destination: MessageDestination, message: TotoMessage ) -> None:
         """
@@ -149,14 +142,10 @@ class TotoMessageBus:
         """
         # Validate destination based on message bus type
         if isinstance(self.message_bus, IPubSub) and not destination.topic:
-            raise ValueError(
-                "MessageDestination.topic is required for Pub/Sub message buses"
-            )
+            raise ValueError("MessageDestination.topic is required for Pub/Sub message buses")
         
         if isinstance(self.message_bus, IQueue) and not destination.queue:
-            raise ValueError(
-                "MessageDestination.queue is required for Queue message buses"
-            )
+            raise ValueError("MessageDestination.queue is required for Queue message buses")
         
         # Resolve topic names if needed (map logical names to resource identifiers)
         resolved_destination = self._resolve_destination(destination)
@@ -292,7 +281,7 @@ class TotoMessageBus:
                     status=ProcessingStatus.IGNORED,
                     response_payload=f"No handler found for message type '{message.type}'"
                 )
-            
+                
             # Process the message
             return await handler.process_message(message)
         

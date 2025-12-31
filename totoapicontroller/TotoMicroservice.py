@@ -198,7 +198,7 @@ class TotoMicroservice:
                 logger.log("INIT", f"Registering {len(init_config.message_bus_configuration.message_handlers)} message handlers")
                 
                 for handler_config in init_config.message_bus_configuration.message_handlers:
-                    handler_instance = handler_config.handler_class(custom_config)
+                    handler_instance = handler_config.handler_class(custom_config, message_bus, init_config.environment)
                     message_bus.register_message_handler(handler_instance)
             
             logger.log("INIT", "Message Bus initialized")

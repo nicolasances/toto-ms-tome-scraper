@@ -8,6 +8,12 @@ from typing import Any, Optional
 from totoapicontroller.model.TotoConfig import TotoControllerConfig
 from totoapicontroller.evt.TotoMessage import TotoMessage
 from totoapicontroller.TotoLogger import TotoLogger
+from totoapicontroller.model.TotoEnvironment import TotoEnvironment
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from totoapicontroller.evt.TotoMessageBus import TotoMessageBus
 
 
 class ProcessingStatus(str, Enum):
@@ -38,9 +44,15 @@ class TotoMessageHandler(ABC):
     
     Subclasses must implement the get_handled_message_type() and process_message() methods.
     """
+    config: "TotoControllerConfig"
+    logger: TotoLogger
+    message_bus: "TotoMessageBus"
+    environment: "TotoEnvironment"
     
-    def __init__(self, config: TotoControllerConfig):
+    def __init__(self, config: TotoControllerConfig, message_bus: "TotoMessageBus", environment: "TotoEnvironment") -> None:
         self.config = config
+        self.message_bus = message_bus
+        self.environment = environment
         self.logger = TotoLogger.get_instance()
     
     @abstractmethod
