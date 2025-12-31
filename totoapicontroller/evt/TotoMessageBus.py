@@ -150,6 +150,8 @@ class TotoMessageBus:
         # Resolve topic names if needed (map logical names to resource identifiers)
         resolved_destination = self._resolve_destination(destination)
         
+        self.logger.log(message.cid, f"Publishing message {message.type} to {resolved_destination.topic if resolved_destination.topic is not None else resolved_destination.queue}")
+        
         # Publish the message
         await self.message_bus.publish_message(resolved_destination, message)
         

@@ -20,6 +20,7 @@ class TopicRefreshedEventHandler(TotoMessageHandler):
         user = message.data.get('user')
         
         exec_context = ExecutionContext(
+            logger=self.logger,
             cid=message.cid, 
             config=self.config, 
             message_bus=self.message_bus,
