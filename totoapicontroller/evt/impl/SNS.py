@@ -131,7 +131,7 @@ class SNSMessageBus(IPubSub):
             response_payload="SNS subscription confirmed successfully."
         )
         
-    def convert(self, envelope: Request) -> TotoMessage:
+    async def convert(self, envelope: Request) -> TotoMessage:
         """
         Convert an SNS message envelope to TotoMessage.
         
@@ -149,9 +149,11 @@ class SNSMessageBus(IPubSub):
             ValueError: If the message format is invalid
         """
         try:
+            body = await envelope.json()
+            
             # Check if this is an SNS notification (HTTP/HTTPS subscription)
-            if envelope.get("Type", "") in ['Notification']:
-                return self._convert_sns_notification(envelope)
+            if body.get("Type", "") in ['Notification']:
+                return self._convert_sns_notification(body)
             
             # Check if this is an SQS message containing SNS data
             # elif 'Records' in envelope:
@@ -168,7 +170,7 @@ class SNSMessageBus(IPubSub):
             self.logger.log("ERROR", f"Failed to convert SNS message: {str(e)}")
             raise ValueError(f"Invalid SNS message format: {str(e)}")
     
-    def _convert_sns_notification(self, sns_message: Request) -> TotoMessage:
+    def _convert_sns_notification(self, sns_message: Dict) -> TotoMessage:
         """
         Convert an SNS notification to TotoMessage.
         
@@ -179,7 +181,7 @@ class SNSMessageBus(IPubSub):
             Parsed TotoMessage
         """
         # Extract the message body
-        message_body = sns_message.body.get('Message', '{}')
+        message_body = sns_message.get('Message', '{}')
         
         # Parse the message body (it's usually JSON)
         if isinstance(message_body, str):

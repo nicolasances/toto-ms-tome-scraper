@@ -17,7 +17,7 @@ class IMessageBus(ABC):
         pass
     
     @abstractmethod
-    def convert(self, envelope: Dict) -> TotoMessage:
+    async def convert(self, envelope: Dict) -> TotoMessage:
         """Convert a message envelope to TotoMessage."""
         pass
 
