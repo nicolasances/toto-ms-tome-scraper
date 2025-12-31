@@ -103,7 +103,8 @@ class SNSMessageBus(IPubSub):
         Args:
             envelope: The SNS subscription confirmation message as a Request object
         """
-        subscribe_url = envelope.body.get('SubscribeURL', '')
+        body = await envelope.json()
+        subscribe_url = body.get('SubscribeURL', '')
         
         if not subscribe_url:
             self.logger.log("ERROR", "SNS SubscriptionConfirmation message missing SubscribeURL")

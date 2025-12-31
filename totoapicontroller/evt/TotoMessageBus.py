@@ -271,8 +271,9 @@ class TotoMessageBus:
             )
             
         # Implementation-specific 
-        # For SNS: Subscription confirmation messages should be answered automatically by the SNS implementation 
-        if (envelope.headers.get('x-amz-sns-message-type', '') == 'SubscriptionConfirmation' or envelope.body.get('Type', '') == 'SubscriptionConfirmation'):
+        # For SNS: Subscription confirmation messages should be answered automatically by the SNS implementation
+        body = await envelope.json()
+        if (envelope.headers.get('x-amz-sns-message-type', '') == 'SubscriptionConfirmation' or body.get('Type', '') == 'SubscriptionConfirmation'):
             self.logger.log("EVENT", "Received SNS SubscriptionConfirmation message. Ignoring as it should be handled by the SNS implementation.")
             # We assume here that the Message Bus Implementation is thus an SNS implementation
             return await cast(SNSMessageBus, self.message_bus).handle_subscription_confirmation(envelope)
