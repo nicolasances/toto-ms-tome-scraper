@@ -27,7 +27,7 @@ class TopicRefreshedEventHandler(TotoMessageHandler):
         )
         
         # Start the scraping process
-        return scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
+        await scrape_and_store_blog(blog_url, topic_name, topic_id, user, exec_context)
         
         # For demonstration, we just log the message and return success
         return ProcessingResponse(status=ProcessingStatus.SUCCESS)
