@@ -265,6 +265,7 @@ class TotoMessageBus:
         self.logger.log("EVENT", "Received PUSH message from Messaging Infrastructure.")
         
         if not isinstance(self.message_bus, IPubSub):
+            self.logger.log("EVENT", "Ignoring message as Message Bus is not an instance of IPubSub")
             return ProcessingResponse(
                 status=ProcessingStatus.IGNORED,
                 response_payload="Message bus is not a Pub/Sub implementation"
@@ -286,6 +287,7 @@ class TotoMessageBus:
             handler = self._find_handler("push", message.type)
             
             if not handler:
+                self.logger.log("EVENT", f"No Message Handler found for message of type {message.type}")
                 return ProcessingResponse(
                     status=ProcessingStatus.IGNORED,
                     response_payload=f"No handler found for message type '{message.type}'"
