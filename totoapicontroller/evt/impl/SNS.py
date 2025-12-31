@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 from fastapi import Request
 
 from totoapicontroller.TotoLogger import TotoLogger
-from totoapicontroller.evt.TotoMessageBus import IPubSub
+from totoapicontroller.evt.TotoMessageBus import IPubSub, ProcessingStatus
 from totoapicontroller.evt.TotoMessage import TotoMessage
 from totoapicontroller.evt.MessageDestination import MessageDestination
 from totoapicontroller.evt.TotoMessageHandler import ProcessingResponse
@@ -109,7 +109,7 @@ class SNSMessageBus(IPubSub):
         if not subscribe_url:
             self.logger.log("ERROR", "SNS SubscriptionConfirmation message missing SubscribeURL")
             return ProcessingResponse(
-                status=ProcessingResponse.IGNORED,
+                status=ProcessingStatus.IGNORED,
                 response_payload="SNS SubscriptionConfirmation message missing SubscribeURL."
             )
         
@@ -127,7 +127,7 @@ class SNSMessageBus(IPubSub):
             self.logger.log("ERROR", f"Error confirming SNS subscription: {str(e)}")
             
         return ProcessingResponse(
-            status=ProcessingResponse.IGNORED,
+            status=ProcessingStatus.IGNORED,
             response_payload="SNS subscription confirmed successfully."
         )
         
