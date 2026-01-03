@@ -1,6 +1,6 @@
 # This package stores all utility classes related to the knowledge base
 
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.model import ExecutionContext
 from google.cloud import storage
 
 class KnowledgeBase: 

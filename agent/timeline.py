@@ -5,7 +5,7 @@ import traceback
 from typing import List
 import boto3
 from botocore.exceptions import ClientError
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.model import ExecutionContext
 
 from model.timeline import Timeline, TimelineDate
 
