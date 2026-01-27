@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import os
 from typing import List
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.model.ExecutionContext import ExecutionContext
 from model.blog import BlogContent
 
 

@@ -2,9 +2,9 @@
 from fastapi import Request
 from config.config import TomeScraperConfig
 
-from totoapicontroller.TotoDelegateDecorator import toto_delegate
-from totoapicontroller.model.UserContext import UserContext
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.TotoDelegateDecorator import toto_delegate
+from totoms.model.UserContext import UserContext
+from totoms.model.ExecutionContext import ExecutionContext
 from evt.publisher import TotoEventPublisher
 
 @toto_delegate

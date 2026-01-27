@@ -3,9 +3,9 @@ from fastapi import Request
 from agent.refresher import RefreshersGenerator
 from config.config import TomeScraperConfig
 
-from totoapicontroller.TotoDelegateDecorator import toto_delegate
-from totoapicontroller.model.UserContext import UserContext
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.TotoDelegateDecorator import toto_delegate
+from totoms.model.UserContext import UserContext
+from totoms.model.ExecutionContext import ExecutionContext
 
 @toto_delegate
 async def test_refresher(request: Request, user_context: UserContext, exec_context: ExecutionContext): 

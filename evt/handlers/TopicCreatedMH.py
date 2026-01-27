@@ -5,14 +5,14 @@ from totoms.evt.TotoMessageBus import ProcessingResponse, ProcessingStatus
 from totoms.evt.TotoMessageHandler import TotoMessageHandler
 from totoms.model.ExecutionContext import ExecutionContext
 
-class TopicRefreshedEventHandler(TotoMessageHandler): 
+class TopicCreatedEventHandler(TotoMessageHandler): 
     
     def get_handled_message_type(self) -> str:
-        return "topicRefreshed"
+        return "topicCreated"
     
     async def process_message(self, message: TotoMessage) -> ProcessingResponse:
-        # Implement the logic to handle the topic refreshed event
-        self.logger.log(message.cid, f"Processing TopicRefreshed event: {message.msg}")
+        # Implement the logic to handle the topic created event
+        self.logger.log(message.cid, f"Processing TopicCreated event: {message.msg}")
         
         blog_url = message.data.get('blogURL')
         topic_name = message.data.get('name')

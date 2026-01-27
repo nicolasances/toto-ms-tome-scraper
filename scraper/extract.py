@@ -1,7 +1,7 @@
 from typing import List
 from bs4 import BeautifulSoup
 from model.blog import BlogContent, BlogSection
-from totoapicontroller.model.ExecutionContext import ExecutionContext
+from totoms.model.ExecutionContext import ExecutionContext
 
 class CraftBlobTextExtractor:
     
