@@ -12,6 +12,7 @@ import asyncio
 import os
 from config.config import TomeScraperConfig
 from evt.handlers.TopicRefreshedMH import TopicRefreshedEventHandler
+from evt.handlers.TopicCreatedMH import TopicCreatedEventHandler
 from totoms import (
     MessageBusHandlerConfig,
     TotoMicroservice,
@@ -24,7 +25,6 @@ from totoms.TotoMicroservice import APIEndpoint, determine_environment, MessageB
 from dlg.scrape import extract_blog_content
 from dlg.test.test_refresher import test_refresher
 from dlg.test.test_pubsub import test_pubsub
-from evt.ontopic import on_topic_event
 
 
 def get_microservice_config() -> TotoMicroserviceConfiguration:
@@ -49,7 +49,8 @@ def get_microservice_config() -> TotoMicroserviceConfiguration:
                 MessageBusTopicConfig(logical_name="tometopics", secret="tome_topics_topic_name")
             ], 
             message_handlers=[
-                MessageBusHandlerConfig(handler_class=TopicRefreshedEventHandler)
+                MessageBusHandlerConfig(handler_class=TopicRefreshedEventHandler), 
+                MessageBusHandlerConfig(handler_class=TopicCreatedEventHandler),
             ]
         ),
     )
